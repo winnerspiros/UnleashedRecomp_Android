@@ -3,9 +3,9 @@ on:
   workflow_call:
     secrets:
       ASSET_REPO:
-        required: true
+        required: false
       ASSET_REPO_TOKEN:
-        required: true
+        required: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,6 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -61,6 +62,7 @@ jobs:
           key: ccache-${{ runner.os }}-${{ matrix.preset }}
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: cp ./private/* ./UnleashedRecompLib/private
   
       - name: Configure Project
@@ -94,6 +96,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout private repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -124,6 +127,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           $commitMessage = git log -1 --pretty=%s
           Add-Content -Path $env:GITHUB_ENV -Value "commit_message=$commitMessage"
@@ -170,6 +174,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -188,6 +193,7 @@ jobs:
           key: ccache-${{ runner.os }}
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: cp ./private/* ./UnleashedRecompLib/private
 
       - name: Prepare Flatpak
@@ -223,6 +229,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -260,6 +267,7 @@ jobs:
           key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.preset }}
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           cp ./private/* ./UnleashedRecompLib/private
 
