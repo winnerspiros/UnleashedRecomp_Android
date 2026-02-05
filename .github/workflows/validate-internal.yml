@@ -9,4 +9,6 @@ jobs:
   build:
     if: github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name
     uses: ./.github/workflows/validate.yml
-    secrets: inherit
+    secrets:
+      ASSET_REPO: ${{ secrets.ASSET_REPO }}
+      ASSET_REPO_TOKEN: ${{ secrets.ASSET_REPO_TOKEN }}
