@@ -3,9 +3,9 @@ on:
   workflow_call:
     secrets:
       ASSET_REPO:
-        required: true
+        required: false
       ASSET_REPO_TOKEN:
-        required: true
+        required: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,6 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -61,6 +62,7 @@ jobs:
           key: ccache-${{ runner.os }}-${{ matrix.preset }}
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: cp ./private/* ./UnleashedRecompLib/private
   
       - name: Configure Project
@@ -68,12 +70,20 @@ jobs:
           CCACHE_DIR: /tmp/ccache
         run: cmake . --preset ${{ env.CMAKE_PRESET }} -DSDL2MIXER_VORBIS=VORBISFILE -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
-      - name: Build Project
+      - name: Build Project (Full)
+        if: ${{ secrets.ASSET_REPO != '' }}
         env:
           CCACHE_DIR: /tmp/ccache
         run: cmake --build ./out/build/${{ env.CMAKE_PRESET }} --target UnleashedRecomp
 
+      - name: Build Project (Tools Only)
+        if: ${{ secrets.ASSET_REPO == '' }}
+        env:
+          CCACHE_DIR: /tmp/ccache
+        run: cmake --build ./out/build/${{ env.CMAKE_PRESET }} --target XenonRecomp
+
       - name: Upload Artifact
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: UnleashedRecomp-Linux-${{ env.CMAKE_PRESET }}
@@ -94,6 +104,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout private repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -124,6 +135,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           $commitMessage = git log -1 --pretty=%s
           Add-Content -Path $env:GITHUB_ENV -Value "commit_message=$commitMessage"
@@ -132,10 +144,16 @@ jobs:
       - name: Configure Project
         run: cmake . --preset ${{ env.CMAKE_PRESET }} -DSDL2MIXER_VORBIS=VORBISFILE -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
-      - name: Build Project
+      - name: Build Project (Full)
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: cmake --build .\out\build\${{ env.CMAKE_PRESET }} --target UnleashedRecomp
 
+      - name: Build Project (Tools Only)
+        if: ${{ secrets.ASSET_REPO == '' }}
+        run: cmake --build .\out\build\${{ env.CMAKE_PRESET }} --target XenonRecomp
+
       - name: Pack Release
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           New-Item -ItemType Directory -Path .\release
           New-Item -ItemType Directory -Path .\release\D3D12
@@ -146,6 +164,7 @@ jobs:
           Move-Item -Path ".\out\build\${{ env.CMAKE_PRESET }}\UnleashedRecomp\UnleashedRecomp.exe" -Destination ".\release\UnleashedRecomp.exe"
 
       - name: Upload Artifact
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: UnleashedRecomp-Windows-${{ env.CMAKE_PRESET }}
@@ -153,12 +172,13 @@ jobs:
 
       - name: Upload PDB
         uses: actions/upload-artifact@v4
-        if: ${{ matrix.preset != 'x64-Clang-Release' }}
+        if: ${{ secrets.ASSET_REPO != '' && matrix.preset != 'x64-Clang-Release' }}
         with:
           name: UnleashedRecomp-Windows-${{ env.CMAKE_PRESET }}-PDB
           path: .\out\build\${{ env.CMAKE_PRESET }}\UnleashedRecomp\UnleashedRecomp.pdb
   build-flatpak:
     name: Build Flatpak
+    if: ${{ secrets.ASSET_REPO != '' }}
     runs-on: ubuntu-24.04
     env:
       FLATPAK_ID: io.github.hedge_dev.unleashedrecomp
@@ -170,6 +190,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -260,6 +281,7 @@ jobs:
           key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ matrix.preset }}
 
       - name: Prepare Project
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           cp ./private/* ./UnleashedRecompLib/private
 
@@ -268,17 +290,26 @@ jobs:
           CCACHE_DIR: /tmp/ccache
         run: cmake . --preset ${{ env.CMAKE_PRESET }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DSDL2MIXER_VORBIS=VORBISFILE -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
-      - name: Build Project
+      - name: Build Project (Full)
+        if: ${{ secrets.ASSET_REPO != '' }}
         env:
           CCACHE_DIR: /tmp/ccache
         run: cmake --build ./out/build/${{ env.CMAKE_PRESET }} --target UnleashedRecomp
 
+      - name: Build Project (Tools Only)
+        if: ${{ secrets.ASSET_REPO == '' }}
+        env:
+          CCACHE_DIR: /tmp/ccache
+        run: cmake --build ./out/build/${{ env.CMAKE_PRESET }} --target XenonRecomp
+
       - name: Pack Release
+        if: ${{ secrets.ASSET_REPO != '' }}
         run: |
           codesign --deep -fs - "./out/build/${{ env.CMAKE_PRESET }}/UnleashedRecomp/Unleashed Recompiled.app"
           tar -czf UnleashedRecomp-macOS-${{ matrix.arch }}-${{ env.CMAKE_PRESET }}.tar.gz -C ./out/build/${{ env.CMAKE_PRESET }}/UnleashedRecomp "Unleashed Recompiled.app"
 
       - name: Upload Artifact
+        if: ${{ secrets.ASSET_REPO != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: UnleashedRecomp-macOS-${{ matrix.arch }}-${{ env.CMAKE_PRESET }}
