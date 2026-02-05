@@ -3,9 +3,9 @@ on:
   workflow_call:
     secrets:
       ASSET_REPO:
-        required: true
+        required: false
       ASSET_REPO_TOKEN:
-        required: true
+        required: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,6 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' && secrets.ASSET_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -61,7 +62,10 @@ jobs:
           key: ccache-${{ runner.os }}-${{ matrix.preset }}
 
       - name: Prepare Project
-        run: cp ./private/* ./UnleashedRecompLib/private
+        run: |
+          if [ -d "./private" ]; then
+            cp ./private/* ./UnleashedRecompLib/private
+          fi
   
       - name: Configure Project
         env:
@@ -94,6 +98,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout private repository
+        if: ${{ secrets.ASSET_REPO != '' && secrets.ASSET_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -127,7 +132,9 @@ jobs:
         run: |
           $commitMessage = git log -1 --pretty=%s
           Add-Content -Path $env:GITHUB_ENV -Value "commit_message=$commitMessage"
-          copy .\private\* .\UnleashedRecompLib\private
+          if (Test-Path .\private) {
+            copy .\private\* .\UnleashedRecompLib\private
+          }
 
       - name: Configure Project
         run: cmake . --preset ${{ env.CMAKE_PRESET }} -DSDL2MIXER_VORBIS=VORBISFILE -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -170,6 +177,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' && secrets.ASSET_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -188,7 +196,10 @@ jobs:
           key: ccache-${{ runner.os }}
 
       - name: Prepare Project
-        run: cp ./private/* ./UnleashedRecompLib/private
+        run: |
+          if [ -d "./private" ]; then
+            cp ./private/* ./UnleashedRecompLib/private
+          fi
 
       - name: Prepare Flatpak
         run: |
@@ -223,6 +234,7 @@ jobs:
           submodules: recursive
 
       - name: Checkout Private Repository
+        if: ${{ secrets.ASSET_REPO != '' && secrets.ASSET_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.ASSET_REPO }}
@@ -261,7 +273,9 @@ jobs:
 
       - name: Prepare Project
         run: |
-          cp ./private/* ./UnleashedRecompLib/private
+          if [ -d "./private" ]; then
+            cp ./private/* ./UnleashedRecompLib/private
+          fi
 
       - name: Configure Project
         env:
