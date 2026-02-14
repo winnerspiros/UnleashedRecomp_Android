@@ -1,0 +1,60 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b89407f..53fa2af 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,8 +20,10 @@ set(XENONRECOMP_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/XenonRecomp)
+
+ project ("XenonRecomp-ALL")
+
+-add_subdirectory(${XENONANALYSE_ROOT})
+-add_subdirectory(${XENONRECOMP_ROOT})
++if (NOT ANDROID)
++    add_subdirectory(${XENONANALYSE_ROOT})
++    add_subdirectory(${XENONRECOMP_ROOT})
++endif()
+ add_subdirectory(${XENONUTILS_ROOT})
+
+ # Only tests if this is the top level project
+diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
+index 0361b0f..a8a1403 100644
+--- a/XenonUtils/xbox.h
++++ b/XenonUtils/xbox.h
+@@ -240,6 +240,7 @@ typedef struct _XOVERLAPPED {
+ } XOVERLAPPED;
+
+ // this name is so dumb
++#ifndef TOOLS_BUILD
+ typedef struct _XXOVERLAPPED {
+     union
+     {
+@@ -263,6 +264,10 @@ typedef struct _XXOVERLAPPED {
+ } XXOVERLAPPED, *PXXOVERLAPPED;
+
+ static_assert(sizeof(_XXOVERLAPPED) == 0x1C);
++#else
++typedef struct _XXOVERLAPPED XXOVERLAPPED;
++typedef XXOVERLAPPED* PXXOVERLAPPED;
++#endif
+
+ // https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-memorystatus
+ typedef struct _XMEMORYSTATUS {
+diff --git a/XenonUtils/xdbf.h b/XenonUtils/xdbf.h
+index 347ac2c..33a2daa 100644
+--- a/XenonUtils/xdbf.h
++++ b/XenonUtils/xdbf.h
+@@ -126,6 +126,7 @@ struct XACHEntry
+     char pad1[0x10];
+ };
+
++#ifndef TOOLS_BUILD
+ union XDBFTitleID
+ {
+     struct
+@@ -187,6 +188,7 @@ struct XGAAEntry
+     be<uint32_t> ImageID;
+     char pad3[0x08];
+ };
++#endif
+
+ struct XSRCHeader
+ {

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdisasm.a "CMakeFiles/disasm.dir/ppc-dis.c.o" CMakeFiles/disasm.dir/disasm.c.o
+/usr/bin/ranlib libdisasm.a

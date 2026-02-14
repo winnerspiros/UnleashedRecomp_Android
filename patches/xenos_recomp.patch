@@ -1,0 +1,128 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ad9a1db..10a8e42 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,4 +7,6 @@ project("XenosRecomp-ALL")
+ set(XENOS_RECOMP_THIRDPARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty")
+
+ add_subdirectory(${XENOS_RECOMP_THIRDPARTY_ROOT})
+-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/XenosRecomp")
++if (NOT ANDROID)
++    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/XenosRecomp")
++endif()
+diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
+index 698a418..05c65b2 100644
+--- a/XenosRecomp/shader_recompiler.cpp
++++ b/XenosRecomp/shader_recompiler.cpp
+@@ -1098,6 +1098,22 @@ void ShaderRecompiler::recompile(const AluInstruction& instr)
+     }
+ }
+
++struct Int4
++{
++    int8_t x;
++    int8_t y;
++    int8_t z;
++    int8_t w;
++};
++
++struct Codes
++{
++    uint32_t code0;
++    uint32_t code1;
++    uint32_t code2;
++    uint32_t code3;
++};
++
+ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_view& include)
+ {
+     const auto shaderContainer = reinterpret_cast<const ShaderContainer*>(shaderData);
+@@ -1397,19 +1413,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+                 union
+                 {
+                     uint32_t value;
+-                    struct
+-                    {
+-                        int8_t x;
+-                        int8_t y;
+-                        int8_t z;
+-                        int8_t w;
+-                    };
++                    Int4 s;
+                 };
+
+                 value = definition->values[i].get();
+
+                 println("\tint4 i{} = int4({}, {}, {}, {});",
+-                    (definition->registerIndex - 8992) / 4 + i, x, y, z, w);
++                    (definition->registerIndex - 8992) / 4 + i, s.x, s.y, s.z, s.w);
+             }
+             definitions += 2;
+             definitions += definition->count;
+@@ -1496,13 +1506,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+     union
+     {
+         ControlFlowInstruction controlFlow[2];
+-        struct
+-        {
+-            uint32_t code0;
+-            uint32_t code1;
+-            uint32_t code2;
+-            uint32_t code3;
+-        };
++        Codes s;
+     };
+
+     auto controlFlowCode = code;
+@@ -1512,10 +1516,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+
+     while (instrAddress < instrSize)
+     {
+-        code0 = controlFlowCode[0];
+-        code1 = controlFlowCode[1] & 0xFFFF;
+-        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
+-        code3 = controlFlowCode[2] >> 16;
++        s.code0 = controlFlowCode[0];
++        s.code1 = controlFlowCode[1] & 0xFFFF;
++        s.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        s.code3 = controlFlowCode[2] >> 16;
+
+         for (auto& cfInstr : controlFlow)
+         {
+@@ -1579,10 +1583,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+
+     while (instrAddress < instrSize)
+     {
+-        code0 = controlFlowCode[0];
+-        code1 = controlFlowCode[1] & 0xFFFF;
+-        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
+-        code3 = controlFlowCode[2] >> 16;
++        s.code0 = controlFlowCode[0];
++        s.code1 = controlFlowCode[1] & 0xFFFF;
++        s.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        s.code3 = controlFlowCode[2] >> 16;
+
+         for (auto& cfInstr : controlFlow)
+         {
+@@ -1728,17 +1732,12 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+                     VertexFetchInstruction vertexFetch;
+                     TextureFetchInstruction textureFetch;
+                     AluInstruction alu;
+-                    struct
+-                    {
+-                        uint32_t code0;
+-                        uint32_t code1;
+-                        uint32_t code2;
+-                    };
++                    Codes s;
+                 };
+
+-                code0 = instructionCode[0];
+-                code1 = instructionCode[1];
+-                code2 = instructionCode[2];
++                s.code0 = instructionCode[0];
++                s.code1 = instructionCode[1];
++                s.code2 = instructionCode[2];
+
+                 if ((sequence & 0x1) != 0)
+                 {

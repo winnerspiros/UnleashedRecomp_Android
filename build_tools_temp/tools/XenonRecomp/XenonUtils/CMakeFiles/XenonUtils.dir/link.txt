@@ -1,0 +1,2 @@
+/usr/bin/ar qc libXenonUtils.a CMakeFiles/XenonUtils.dir/disasm.cpp.o CMakeFiles/XenonUtils.dir/xex.cpp.o CMakeFiles/XenonUtils.dir/image.cpp.o CMakeFiles/XenonUtils.dir/xdbf_wrapper.cpp.o CMakeFiles/XenonUtils.dir/xex_patcher.cpp.o CMakeFiles/XenonUtils.dir/memory_mapped_file.cpp.o CMakeFiles/XenonUtils.dir/app/tools/XenonRecomp/thirdparty/libmspack/libmspack/mspack/lzxd.c.o "CMakeFiles/XenonUtils.dir/app/tools/XenonRecomp/thirdparty/tiny-AES-c/aes.c.o"
+/usr/bin/ranlib libXenonUtils.a

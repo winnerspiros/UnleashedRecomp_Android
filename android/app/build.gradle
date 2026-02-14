@@ -13,7 +13,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++20"
-                arguments "-DANDROID=ON", "-DANDROID_STL=c++_static", "-DCMAKE_TOOLCHAIN_FILE=${project.rootDir}/../thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake", "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${android.ndkDirectory}/build/cmake/android.toolchain.cmake", "-DVCPKG_TARGET_TRIPLET=arm64-android"
+                arguments "-DANDROID=ON", "-DANDROID_STL=c++_static", "-DCMAKE_TOOLCHAIN_FILE=${project.rootDir}/../thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake", "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${android.ndkDirectory}/build/cmake/android.toolchain.cmake", "-DVCPKG_TARGET_TRIPLET=arm64-android", "-DHOST_TOOLS_DIR=${project.rootDir}/../build_tools/bin"
             }
         }
         ndk {

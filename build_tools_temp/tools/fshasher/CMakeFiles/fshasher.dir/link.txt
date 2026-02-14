@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/fshasher.dir/fshasher.cpp.o -o fshasher  ../XenonRecomp/thirdparty/xxHash/cmake_unofficial/libxxhash.a

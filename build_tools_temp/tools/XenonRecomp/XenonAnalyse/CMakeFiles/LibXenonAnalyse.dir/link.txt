@@ -1,0 +1,2 @@
+/usr/bin/ar qc libLibXenonAnalyse.a CMakeFiles/LibXenonAnalyse.dir/function.cpp.o
+/usr/bin/ranlib libLibXenonAnalyse.a

@@ -37,8 +37,17 @@ function(BIN2C)
         set(BIN2C_ARGS_COMPRESSION_TYPE "none")
     endif()
 
+    if (ANDROID)
+        if (NOT DEFINED HOST_TOOLS_DIR)
+            message(FATAL_ERROR "HOST_TOOLS_DIR not defined")
+        endif()
+        set(FILE_TO_C_CMD "${HOST_TOOLS_DIR}/file_to_c")
+    else()
+        set(FILE_TO_C_CMD $<TARGET_FILE:file_to_c>)
+    endif()
+
     add_custom_command(OUTPUT "${BIN2C_ARGS_DEST_FILE}.c"
-        COMMAND $<TARGET_FILE:file_to_c> "${BIN2C_ARGS_SOURCE_FILE}" "${BIN2C_ARGS_ARRAY_NAME}" "${BIN2C_ARGS_COMPRESSION_TYPE}" "${BIN2C_ARGS_DEST_FILE}.c" "${BIN2C_ARGS_DEST_FILE}.h"
+        COMMAND ${FILE_TO_C_CMD} "${BIN2C_ARGS_SOURCE_FILE}" "${BIN2C_ARGS_ARRAY_NAME}" "${BIN2C_ARGS_COMPRESSION_TYPE}" "${BIN2C_ARGS_DEST_FILE}.c" "${BIN2C_ARGS_DEST_FILE}.h"
         DEPENDS "${BIN2C_ARGS_SOURCE_FILE}"
         BYPRODUCTS "${BIN2C_ARGS_DEST_FILE}.h"
         COMMENT "Generating binary header for ${BIN2C_ARGS_SOURCE_FILE}..."

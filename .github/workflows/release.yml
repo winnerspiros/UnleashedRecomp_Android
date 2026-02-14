@@ -72,6 +72,11 @@ jobs:
             echo "Private directory is empty or does not exist."
           fi
 
+      - name: Build Tools
+        run: |
+          chmod +x ./build_tools.sh
+          ./build_tools.sh
+
       - name: Build Release APK
         working-directory: ./android
         run: ./gradlew assembleRelease

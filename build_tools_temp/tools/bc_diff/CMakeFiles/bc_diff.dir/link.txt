@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/bc_diff.dir/bc_diff.cpp.o -o bc_diff  ../XenonRecomp/thirdparty/xxHash/cmake_unofficial/libxxhash.a

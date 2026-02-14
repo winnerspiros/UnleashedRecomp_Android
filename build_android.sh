@@ -25,6 +25,9 @@ else
 fi
 cd ../..
 
+# Build tools
+./build_tools.sh
+
 # Build APK
 echo "Building APK..."
 cd android

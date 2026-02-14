@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/file_to_c.dir/file_to_c.cpp.o -o file_to_c  ../XenosRecomp/thirdparty/zstd/build/cmake/lib/libzstd.a

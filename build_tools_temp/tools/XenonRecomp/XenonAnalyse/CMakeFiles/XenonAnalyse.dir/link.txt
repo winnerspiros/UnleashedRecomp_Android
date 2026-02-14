@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/XenonAnalyse.dir/main.cpp.o CMakeFiles/XenonAnalyse.dir/function.cpp.o -o XenonAnalyse  ../XenonUtils/libXenonUtils.a ../thirdparty/fmt/libfmt.a ../thirdparty/disasm/libdisasm.a

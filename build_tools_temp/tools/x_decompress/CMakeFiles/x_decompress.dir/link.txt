@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/x_decompress.dir/x_decompress.cpp.o CMakeFiles/x_decompress.dir/app/tools/XenonRecomp/thirdparty/libmspack/libmspack/mspack/lzxd.c.o -o x_decompress
