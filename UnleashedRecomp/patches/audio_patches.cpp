@@ -9,13 +9,32 @@ int AudioPatches::m_isAttenuationSupported = -1;
 
 static be<float>* GetVolume(bool isMusic = true)
 {
-    auto ppUnkClass = (be<uint32_t>*)g_memory.Translate(0x83362FFC);
+    // Address of the pointer to the audio subsystem class instance.
+    constexpr uint32_t ptrToAudioSubsystem = 0x83362FFC;
 
-    if (!ppUnkClass->get())
+    auto ppAudioSubsystem = (be<uint32_t>*)g_memory.Translate(ptrToAudioSubsystem);
+    uint32_t audioSubsystemAddr = ppAudioSubsystem->get();
+
+    if (!audioSubsystemAddr)
         return nullptr;
 
-    // NOTE (Hyper): This is fine, trust me. See 0x82E58728.
-    return (be<float>*)g_memory.Translate(4 * ((int)isMusic + 0x1C) + ((be<uint32_t>*)g_memory.Translate(ppUnkClass->get() + 4))->get());
+    // Derived from sub_82E58728.
+    // The audio subsystem has a pointer at offset 0x4 that points to the volume control structure.
+    constexpr uint32_t volumeStructPtrOffset = 0x4;
+    auto ppVolumeStruct = (be<uint32_t>*)g_memory.Translate(audioSubsystemAddr + volumeStructPtrOffset);
+    uint32_t volumeBaseAddr = ppVolumeStruct->get();
+
+    if (!volumeBaseAddr)
+        return nullptr;
+
+    // Volume floats are at index 28 (Effects) and 29 (Music) in the volume structure.
+    constexpr int IndexEffects = 28; // 0x1C
+    constexpr int IndexMusic = 29;   // 0x1D
+
+    int index = isMusic ? IndexMusic : IndexEffects;
+    uint32_t volumeAddr = volumeBaseAddr + (index * sizeof(float));
+
+    return (be<float>*)g_memory.Translate(volumeAddr);
 }
 
 bool AudioPatches::CanAttenuate()
