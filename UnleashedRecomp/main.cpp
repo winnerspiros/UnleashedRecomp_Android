@@ -39,6 +39,141 @@ Heap g_userHeap;
 XDBFWrapper g_xdbfWrapper;
 std::unordered_map<uint16_t, GuestTexture*> g_xdbfTextureCache;
 
+namespace {
+    struct CommandLineArgs {
+        bool forceInstaller = false;
+        bool forceDLCInstaller = false;
+        bool useDefaultWorkingDirectory = false;
+        bool forceInstallationCheck = false;
+        bool graphicsApiRetry = false;
+        const char *sdlVideoDriver = nullptr;
+    };
+
+    CommandLineArgs ParseCommandLine(int argc, char *argv[]) {
+        CommandLineArgs args;
+        for (uint32_t i = 1; i < argc; i++)
+        {
+            args.forceInstaller = args.forceInstaller || (strcmp(argv[i], "--install") == 0);
+            args.forceDLCInstaller = args.forceDLCInstaller || (strcmp(argv[i], "--install-dlc") == 0);
+            args.useDefaultWorkingDirectory = args.useDefaultWorkingDirectory || (strcmp(argv[i], "--use-cwd") == 0);
+            args.forceInstallationCheck = args.forceInstallationCheck || (strcmp(argv[i], "--install-check") == 0);
+            args.graphicsApiRetry = args.graphicsApiRetry || (strcmp(argv[i], "--graphics-api-retry") == 0);
+
+            if (strcmp(argv[i], "--sdl-video-driver") == 0)
+            {
+                if ((i + 1) < argc)
+                    args.sdlVideoDriver = argv[++i];
+                else
+                    LOGN_WARNING("No argument was specified for --sdl-video-driver. Option will be ignored.");
+            }
+        }
+        return args;
+    }
+
+    void SetupEnvironment() {
+#ifdef __ANDROID__
+        SDL_setenv("SDL_AUDIO_DRIVER", "aaudio", 1);
+        SDL_setenv("SDL_VIDEODRIVER", "android", 1);
+
+        perf::EnableSustainedPerformanceMode(true);
+#endif
+
+        os::process::CheckConsole();
+
+        if (!os::registry::Init())
+            LOGN_WARNING("OS does not support registry.");
+
+        os::logger::Init();
+    }
+
+    void CheckInstallationIntegrity() {
+        // Create the console to show progress to the user, otherwise it will seem as if the game didn't boot at all.
+        os::process::ShowConsole();
+
+        Journal journal;
+        double lastProgressMiB = 0.0;
+        double lastTotalMib = 0.0;
+        Installer::checkInstallIntegrity(GAME_INSTALL_DIRECTORY, journal, [&]()
+        {
+            constexpr double MiBDivisor = 1024.0 * 1024.0;
+            constexpr double MiBProgressThreshold = 128.0;
+            double progressMiB = double(journal.progressCounter) / MiBDivisor;
+            double totalMiB = double(journal.progressTotal) / MiBDivisor;
+            if (journal.progressCounter > 0)
+            {
+                if ((progressMiB - lastProgressMiB) > MiBProgressThreshold)
+                {
+                    fprintf(stdout, "Checking files: %0.2f MiB / %0.2f MiB\n", progressMiB, totalMiB);
+                    lastProgressMiB = progressMiB;
+                }
+            }
+            else
+            {
+                if ((totalMiB - lastTotalMib) > MiBProgressThreshold)
+                {
+                    fprintf(stdout, "Scanning files: %0.2f MiB\n", totalMiB);
+                    lastTotalMib = totalMiB;
+                }
+            }
+
+            return true;
+        });
+
+        char resultText[512];
+        uint32_t messageBoxStyle;
+        if (journal.lastResult == Journal::Result::Success)
+        {
+            snprintf(resultText, sizeof(resultText), "%s", Localise("IntegrityCheck_Success").c_str());
+            fprintf(stdout, "%s\n", resultText);
+            messageBoxStyle = SDL_MESSAGEBOX_INFORMATION;
+        }
+        else
+        {
+            snprintf(resultText, sizeof(resultText), Localise("IntegrityCheck_Failed").c_str(), journal.lastErrorMessage.c_str());
+            fprintf(stderr, "%s\n", resultText);
+            messageBoxStyle = SDL_MESSAGEBOX_ERROR;
+        }
+
+        SDL_ShowSimpleMessageBox(messageBoxStyle, GameWindow::GetTitle(), resultText, GameWindow::s_pWindow);
+        std::_Exit(int(journal.lastResult));
+    }
+
+    void CheckForUpdates() {
+        // Check the time since the last time an update was checked. Store the new time if the difference is more than six hours.
+        constexpr double TimeBetweenUpdateChecksInSeconds = 6 * 60 * 60;
+        time_t timeNow = std::time(nullptr);
+        double timeDifferenceSeconds = difftime(timeNow, Config::LastChecked);
+        if (timeDifferenceSeconds > TimeBetweenUpdateChecksInSeconds)
+        {
+            UpdateChecker::initialize();
+            UpdateChecker::start();
+            Config::LastChecked = timeNow;
+            Config::Save();
+        }
+    }
+
+    bool CheckGameInstallAndRunWizard(const CommandLineArgs& args, std::filesystem::path& modulePath) {
+        bool isGameInstalled = Installer::checkGameInstall(GetGamePath(), modulePath);
+        bool runInstallerWizard = args.forceInstaller || args.forceDLCInstaller || !isGameInstalled;
+
+        if (runInstallerWizard)
+        {
+            if (!Video::CreateHostDevice(args.sdlVideoDriver, args.graphicsApiRetry))
+            {
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("Video_BackendError").c_str(), GameWindow::s_pWindow);
+                std::_Exit(1);
+            }
+
+            if (!InstallerWizard::Run(GetGamePath(), isGameInstalled && args.forceDLCInstaller))
+            {
+                std::_Exit(0);
+            }
+        }
+        return runInstallerWizard;
+    }
+
+}
+
 void HostStartup()
 {
     hid::Init();
@@ -176,48 +311,14 @@ void init()
 
 int main(int argc, char *argv[])
 {
-#ifdef __ANDROID__
-    SDL_setenv("SDL_AUDIO_DRIVER", "aaudio", 1);
-    SDL_setenv("SDL_VIDEODRIVER", "android", 1);
-
-    perf::EnableSustainedPerformanceMode(true);
-#endif
-
-    os::process::CheckConsole();
-
-    if (!os::registry::Init())
-        LOGN_WARNING("OS does not support registry.");
-
-    os::logger::Init();
+    SetupEnvironment();
 
     PreloadContext preloadContext;
     preloadContext.PreloadExecutable();
 
-    bool forceInstaller = false;
-    bool forceDLCInstaller = false;
-    bool useDefaultWorkingDirectory = false;
-    bool forceInstallationCheck = false;
-    bool graphicsApiRetry = false;
-    const char *sdlVideoDriver = nullptr;
+    const auto args = ParseCommandLine(argc, argv);
 
-    for (uint32_t i = 1; i < argc; i++)
-    {
-        forceInstaller = forceInstaller || (strcmp(argv[i], "--install") == 0);
-        forceDLCInstaller = forceDLCInstaller || (strcmp(argv[i], "--install-dlc") == 0);
-        useDefaultWorkingDirectory = useDefaultWorkingDirectory || (strcmp(argv[i], "--use-cwd") == 0);
-        forceInstallationCheck = forceInstallationCheck || (strcmp(argv[i], "--install-check") == 0);
-        graphicsApiRetry = graphicsApiRetry || (strcmp(argv[i], "--graphics-api-retry") == 0);
-
-        if (strcmp(argv[i], "--sdl-video-driver") == 0)
-        {
-            if ((i + 1) < argc)
-                sdlVideoDriver = argv[++i];
-            else
-                LOGN_WARNING("No argument was specified for --sdl-video-driver. Option will be ignored.");
-        }
-    }
-
-    if (!useDefaultWorkingDirectory)
+    if (!args.useDefaultWorkingDirectory)
     {
         // Set the current working directory to the executable's path.
         std::error_code ec;
@@ -226,70 +327,12 @@ int main(int argc, char *argv[])
 
     Config::Load();
 
-    if (forceInstallationCheck)
+    if (args.forceInstallationCheck)
     {
-        // Create the console to show progress to the user, otherwise it will seem as if the game didn't boot at all.
-        os::process::ShowConsole();
-
-        Journal journal;
-        double lastProgressMiB = 0.0;
-        double lastTotalMib = 0.0;
-        Installer::checkInstallIntegrity(GAME_INSTALL_DIRECTORY, journal, [&]()
-        {
-            constexpr double MiBDivisor = 1024.0 * 1024.0;
-            constexpr double MiBProgressThreshold = 128.0;
-            double progressMiB = double(journal.progressCounter) / MiBDivisor;
-            double totalMiB = double(journal.progressTotal) / MiBDivisor;
-            if (journal.progressCounter > 0)
-            {
-                if ((progressMiB - lastProgressMiB) > MiBProgressThreshold)
-                {
-                    fprintf(stdout, "Checking files: %0.2f MiB / %0.2f MiB\n", progressMiB, totalMiB);
-                    lastProgressMiB = progressMiB;
-                }
-            }
-            else
-            {
-                if ((totalMiB - lastTotalMib) > MiBProgressThreshold)
-                {
-                    fprintf(stdout, "Scanning files: %0.2f MiB\n", totalMiB);
-                    lastTotalMib = totalMiB;
-                }
-            }
-
-            return true;
-        });
-
-        char resultText[512];
-        uint32_t messageBoxStyle;
-        if (journal.lastResult == Journal::Result::Success)
-        {
-            snprintf(resultText, sizeof(resultText), "%s", Localise("IntegrityCheck_Success").c_str());
-            fprintf(stdout, "%s\n", resultText);
-            messageBoxStyle = SDL_MESSAGEBOX_INFORMATION;
-        }
-        else
-        {
-            snprintf(resultText, sizeof(resultText), Localise("IntegrityCheck_Failed").c_str(), journal.lastErrorMessage.c_str());
-            fprintf(stderr, "%s\n", resultText);
-            messageBoxStyle = SDL_MESSAGEBOX_ERROR;
-        }
-
-        SDL_ShowSimpleMessageBox(messageBoxStyle, GameWindow::GetTitle(), resultText, GameWindow::s_pWindow);
-        std::_Exit(int(journal.lastResult));
+        CheckInstallationIntegrity();
     }
 
-    // Check the time since the last time an update was checked. Store the new time if the difference is more than six hours.
-    constexpr double TimeBetweenUpdateChecksInSeconds = 6 * 60 * 60;
-    time_t timeNow = std::time(nullptr);
-    double timeDifferenceSeconds = difftime(timeNow, Config::LastChecked);
-    if (timeDifferenceSeconds > TimeBetweenUpdateChecksInSeconds)
-    {
-        UpdateChecker::initialize();
-        UpdateChecker::start();
-        Config::LastChecked = timeNow;
-        Config::Save();
-    }
+    CheckForUpdates();
 
     if (Config::ShowConsole)
         os::process::ShowConsole();
@@ -297,21 +340,7 @@ int main(int argc, char *argv[])
     HostStartup();
 
     std::filesystem::path modulePath;
-    bool isGameInstalled = Installer::checkGameInstall(GetGamePath(), modulePath);
-    bool runInstallerWizard = forceInstaller || forceDLCInstaller || !isGameInstalled;
-    if (runInstallerWizard)
-    {
-        if (!Video::CreateHostDevice(sdlVideoDriver, graphicsApiRetry))
-        {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("Video_BackendError").c_str(), GameWindow::s_pWindow);
-            std::_Exit(1);
-        }
-
-        if (!InstallerWizard::Run(GetGamePath(), isGameInstalled && forceDLCInstaller))
-        {
-            std::_Exit(0);
-        }
-    }
+    bool runInstallerWizard = CheckGameInstallAndRunWizard(args, modulePath);
 
     ModLoader::Init();
 
@@ -324,7 +353,7 @@ int main(int argc, char *argv[])
 
     if (!runInstallerWizard)
     {
-        if (!Video::CreateHostDevice(sdlVideoDriver, graphicsApiRetry))
+        if (!Video::CreateHostDevice(args.sdlVideoDriver, args.graphicsApiRetry))
         {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GameWindow::GetTitle(), Localise("Video_BackendError").c_str(), GameWindow::s_pWindow);
             std::_Exit(1);
