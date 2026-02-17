@@ -1,4 +1,5 @@
 #include <stdafx.h>
+#include <cctype>
 #include <SDL.h>
 #include <user/config.h>
 #include <hid/hid.h>
@@ -19,6 +20,7 @@ public:
     XAMINPUT_GAMEPAD state{};
     XAMINPUT_VIBRATION vibration{ 0, 0 };
     int index{};
+    uint8_t subType{ XAMINPUT_DEVSUBTYPE_GAMEPAD };
 
     Controller() = default;
 
@@ -34,6 +36,8 @@ public:
 
         joystick = SDL_GameControllerGetJoystick(controller);
         id = SDL_JoystickInstanceID(joystick);
+
+        CalculateSubType();
     }
 
     SDL_GameControllerType GetControllerType() const
@@ -144,6 +148,42 @@ public:
     void SetLED(const uint8_t r, const uint8_t g, const uint8_t b) const
     {
         SDL_GameControllerSetLED(controller, r, g, b);
+    }
+
+    uint8_t GetControllerSubType() const
+    {
+        return subType;
+    }
+
+private:
+    void CalculateSubType()
+    {
+        std::string name = GetControllerName();
+        // Convert to lowercase
+        std::transform(name.begin(), name.end(), name.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+
+        if (name.find("wheel") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_WHEEL;
+        else if (name.find("arcade stick") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_ARCADE_STICK;
+        else if (name.find("flight stick") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_FLIGHT_STICK;
+        else if (name.find("dance") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_DANCE_PAD;
+        else if (name.find("guitar") != std::string::npos)
+        {
+            if (name.find("bass") != std::string::npos)
+                subType = XAMINPUT_DEVSUBTYPE_GUITAR_BASS;
+            else
+                subType = XAMINPUT_DEVSUBTYPE_GUITAR;
+        }
+        else if (name.find("drum") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_DRUM_KIT;
+        else if (name.find("arcade pad") != std::string::npos)
+            subType = XAMINPUT_DEVSUBTYPE_ARCADE_PAD;
+        else
+            subType = XAMINPUT_DEVSUBTYPE_GAMEPAD;
     }
 };
 
@@ -384,7 +424,7 @@ uint32_t hid::GetCapabilities(uint32_t dwUserIndex, XAMINPUT_CAPABILITIES* pCaps
     memset(pCaps, 0, sizeof(*pCaps));
 
     pCaps->Type = XAMINPUT_DEVTYPE_GAMEPAD;
-    pCaps->SubType = XAMINPUT_DEVSUBTYPE_GAMEPAD; // TODO: other types?
+    pCaps->SubType = g_activeController->GetControllerSubType();
     pCaps->Flags = 0;
     pCaps->Gamepad = g_activeController->state;
     pCaps->Vibration = g_activeController->vibration;

@@ -155,3 +155,23 @@ index 3e224b4..4b78abf 100644
              else if ((operand->flags & PPC_OPERAND_CR) == 0
                  || (dialect & PPC_OPCODE_PPC) == 0)
                  stream = stream + sprintf(stream, "%ld", value);
+diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
+index 0361b0f..3354398 100644
+--- a/XenonUtils/xbox.h
++++ b/XenonUtils/xbox.h
+@@ -360,6 +360,15 @@ typedef struct _XDEVICE_DATA
+
+ #define XAMINPUT_DEVTYPE_GAMEPAD          0x01
+ #define XAMINPUT_DEVSUBTYPE_GAMEPAD       0x01
++#define XAMINPUT_DEVSUBTYPE_WHEEL         0x02
++#define XAMINPUT_DEVSUBTYPE_ARCADE_STICK  0x03
++#define XAMINPUT_DEVSUBTYPE_FLIGHT_STICK  0x04
++#define XAMINPUT_DEVSUBTYPE_DANCE_PAD     0x05
++#define XAMINPUT_DEVSUBTYPE_GUITAR        0x06
++#define XAMINPUT_DEVSUBTYPE_GUITAR_ALT    0x07
++#define XAMINPUT_DEVSUBTYPE_DRUM_KIT      0x08
++#define XAMINPUT_DEVSUBTYPE_GUITAR_BASS   0x0B
++#define XAMINPUT_DEVSUBTYPE_ARCADE_PAD    0x13
+
+ #define XAMINPUT_GAMEPAD_DPAD_UP          0x0001
+ #define XAMINPUT_GAMEPAD_DPAD_DOWN        0x0002
