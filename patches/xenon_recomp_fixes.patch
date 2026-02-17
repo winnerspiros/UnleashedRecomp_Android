@@ -15,6 +15,41 @@ index b89407f..53fa2af 100644
  add_subdirectory(${XENONUTILS_ROOT})
 
  # Only tests if this is the top level project
+diff --git a/XenonAnalyse/function.cpp b/XenonAnalyse/function.cpp
+index 34add40..eb336cf 100644
+--- a/XenonAnalyse/function.cpp
++++ b/XenonAnalyse/function.cpp
+@@ -99,6 +99,7 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
+             }
+
+             // TODO: carry projections over to false
++            const size_t inheritedProjection = curBlock.projectedSize != -1 ? curBlock.projectedSize - curBlock.size : -1;
+             curBlock.projectedSize = -1;
+             blockStack.pop_back();
+
+@@ -117,7 +118,21 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
+
+             if (lBlock == -1)
+             {
+-                blocks.emplace_back(lBase, 0).projectedSize = rBase - lBase;
++                size_t newProjection = -1;
++                if (rBase > lBase)
++                {
++                    newProjection = rBase - lBase;
++                }
++
++                if (inheritedProjection != -1)
++                {
++                    if (newProjection == -1 || inheritedProjection < newProjection)
++                    {
++                        newProjection = inheritedProjection;
++                    }
++                }
++
++                blocks.emplace_back(lBase, 0).projectedSize = newProjection;
+                 lBlock = blocks.size() - 1;
+
+                 // push this first, this gets overriden by the true case as it'd be further away
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
 index fa91527..dbd4fa6 100644
 --- a/XenonRecomp/recompiler.cpp
