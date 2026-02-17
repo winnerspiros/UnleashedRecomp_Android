@@ -24,6 +24,14 @@ if [ -f "patches/xenon_recomp_absolute_branch.patch" ]; then
     cd ../..
 fi
 
+# Apply VPKD3D128 vectorization
+if [ -f "patches/xenon_recomp_vpkd3d128.patch" ]; then
+    echo "Applying VPKD3D128 vectorization..."
+    cd tools/XenonRecomp
+    git apply ../../patches/xenon_recomp_vpkd3d128.patch || echo "Warning: Failed to apply VPKD3D128 patch or already applied."
+    cd ../..
+fi
+
 echo "=== Building GCC compatible tools ==="
 rm -rf build_tools/build_gcc
 mkdir -p build_tools/build_gcc
@@ -68,10 +76,10 @@ mkdir -p build_tools/build_clang
 cd build_tools/build_clang
 
 export CC=gcc
-export CXX=clang++
+export CXX=g++
 
-# Configure with -fms-extensions for C++
-cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON -DCMAKE_CXX_FLAGS="-fms-extensions"
+# Configure
+cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON
 
 # Build
 cmake --build . --target XenonRecomp XenosRecomp --parallel $(nproc)
