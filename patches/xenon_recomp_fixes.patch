@@ -16,7 +16,7 @@ index b89407f..53fa2af 100644
 
  # Only tests if this is the top level project
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
-index fa91527..dbd4fa6 100644
+index fa91527..d2dd87a 100644
 --- a/XenonRecomp/recompiler.cpp
 +++ b/XenonRecomp/recompiler.cpp
 @@ -12,6 +12,7 @@ static uint64_t ComputeMask(uint32_t mstart, uint32_t mstop)
@@ -49,6 +49,38 @@ index fa91527..dbd4fa6 100644
                  return false;
              }
          }
+@@ -1598,13 +1612,12 @@ bool Recompiler::Recompile(
+
+     case PPC_INST_STVEWX:
+     case PPC_INST_STVEWX128:
+-        // TODO: vectorize
+         // NOTE: accounting for the full vector reversal here
+         print("\t{} = (", ea());
+         if (insn.operands[1] != 0)
+             print("{}.u32 + ", r(insn.operands[1]));
+         println("{}.u32) & ~0x3;", r(insn.operands[2]));
+-        println("\tPPC_STORE_U32(ea, {}.u32[3 - (({} & 0xF) >> 2)]);", v(insn.operands[0]), ea());
++        println("\tPPC_STORE_U32(ea, simde_mm_cvtsi128_si32(simde_mm_shuffle_epi8(simde_mm_load_si128((simde__m128i*){}.u8), simde_mm_loadu_si128((simde__m128i*)&VectorIdentity[12 - ({} & 0xF)]))));", v(insn.operands[0]), ea());
+         break;
+
+     case PPC_INST_STVLX:
+diff --git a/XenonUtils/ppc_context.h b/XenonUtils/ppc_context.h
+index 31a86cd..2bec651 100644
+--- a/XenonUtils/ppc_context.h
++++ b/XenonUtils/ppc_context.h
+@@ -624,6 +624,12 @@ inline uint8_t VectorShiftTableR[] =
+     0x10, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+ };
+
++inline uint8_t VectorIdentity[] =
++{
++    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
++    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
++};
++
+ inline simde__m128i simde_mm_adds_epu32(simde__m128i a, simde__m128i b)
+ {
+     return simde_mm_add_epi32(a, simde_mm_min_epu32(simde_mm_xor_si128(a, simde_mm_cmpeq_epi32(a, a)), b));
 diff --git a/XenonUtils/xex_patcher.cpp b/XenonUtils/xex_patcher.cpp
 index 8492a5d..f9f9203 100644
 --- a/XenonUtils/xex_patcher.cpp
