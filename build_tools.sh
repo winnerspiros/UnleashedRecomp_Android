@@ -28,7 +28,7 @@ export CXX=g++
 cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON
 
 # Build
-cmake --build . --target file_to_c fshasher x_decompress bc_diff --parallel $(nproc)
+cmake --build . --target file_to_c fshasher x_decompress bc_diff fmt --parallel $(nproc)
 
 # Install function using absolute path
 copy_tool() {
@@ -60,10 +60,10 @@ mkdir -p build_tools/build_clang
 cd build_tools/build_clang
 
 export CC=gcc
-export CXX=clang++
+export CXX=g++
 
-# Configure with -fms-extensions for C++
-cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON -DCMAKE_CXX_FLAGS="-fms-extensions"
+# Configure
+cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON
 
 # Build
 cmake --build . --target XenonRecomp XenosRecomp --parallel $(nproc)
