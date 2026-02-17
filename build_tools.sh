@@ -24,6 +24,14 @@ if [ -f "patches/xenon_recomp_absolute_branch.patch" ]; then
     cd ../..
 fi
 
+# Apply MFOCRF fixes and GCC compatibility
+if [ -f "patches/xenon_recomp_mfocrf.patch" ]; then
+    echo "Applying MFOCRF fixes..."
+    cd tools/XenonRecomp
+    git apply ../../patches/xenon_recomp_mfocrf.patch || echo "Warning: Failed to apply MFOCRF patch or already applied."
+    cd ../..
+fi
+
 echo "=== Building GCC compatible tools ==="
 rm -rf build_tools/build_gcc
 mkdir -p build_tools/build_gcc
@@ -36,7 +44,7 @@ export CXX=g++
 cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON
 
 # Build
-cmake --build . --target file_to_c fshasher x_decompress bc_diff --parallel $(nproc)
+cmake --build . --target file_to_c fshasher x_decompress bc_diff XenonRecomp XenosRecomp --parallel $(nproc)
 
 # Install function using absolute path
 copy_tool() {
@@ -55,28 +63,6 @@ copy_tool "file_to_c"
 copy_tool "fshasher"
 copy_tool "x_decompress"
 copy_tool "bc_diff"
-
-cd ../..
-
-echo "=== Building Clang compatible tools (XenonRecomp/XenosRecomp) ==="
-# XenonUtils requires MSVC extensions which Clang supports but GCC does not.
-# However, Clang C compiler crashed on zstd, so we use GCC for C code.
-# And file_to_c failed with Clang++, so we built it with G++ above.
-
-rm -rf build_tools/build_clang
-mkdir -p build_tools/build_clang
-cd build_tools/build_clang
-
-export CC=gcc
-export CXX=clang++
-
-# Configure with -fms-extensions for C++
-cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_TOOLS_ONLY=ON -DCMAKE_CXX_FLAGS="-fms-extensions"
-
-# Build
-cmake --build . --target XenonRecomp XenosRecomp --parallel $(nproc)
-
-# Install
 copy_tool "XenonRecomp"
 copy_tool "XenosRecomp"
 

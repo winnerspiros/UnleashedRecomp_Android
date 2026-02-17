@@ -1,0 +1,59 @@
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+index fa91527..589590f 100644
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -1255,8 +1255,19 @@ bool Recompiler::Recompile(
+         break;
+
+     case PPC_INST_MFOCRF:
+-        // TODO: don't hardcode to cr6
+-        println("\t{}.u64 = ({}.lt << 7) | ({}.gt << 6) | ({}.eq << 5) | ({}.so << 4);", r(insn.operands[0]), cr(6), cr(6), cr(6), cr(6));
++        {
++            uint32_t mask = insn.operands[1];
++            if (mask != 0)
++            {
++                int crIndex = __builtin_clz(mask) - 24;
++                int shift = 31 - 4 * crIndex;
++                println("\t{}.u64 = ({}.lt << {}) | ({}.gt << {}) | ({}.eq << {}) | ({}.so << {});", r(insn.operands[0]), cr(crIndex), shift, cr(crIndex), shift - 1, cr(crIndex), shift - 2, cr(crIndex), shift - 3);
++            }
++            else
++            {
++                println("\t// MFOCRF with invalid mask 0");
++            }
++        }
+         break;
+
+     case PPC_INST_MFTB:
+diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
+index 0361b0f..215878d 100644
+--- a/XenonUtils/xbox.h
++++ b/XenonUtils/xbox.h
+@@ -247,13 +247,13 @@ typedef struct _XXOVERLAPPED {
+         {
+             be<uint32_t> Error;
+             be<uint32_t> Length;
+-        };
++        } AsError;
+
+         struct
+         {
+             uint32_t InternalLow;
+             uint32_t InternalHigh;
+-        };
++        } AsInternal;
+     };
+     uint32_t InternalContext;
+     be<uint32_t> hEvent;
+diff --git a/XenonUtils/xdbf.h b/XenonUtils/xdbf.h
+index 347ac2c..b9e5b87 100644
+--- a/XenonUtils/xdbf.h
++++ b/XenonUtils/xdbf.h
+@@ -132,7 +132,7 @@ union XDBFTitleID
+     {
+         be<uint16_t> u16;
+         char u8[0x02];
+-    };
++    } AsU16;
+
+     be<uint32_t> u32;
+ };
