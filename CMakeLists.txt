@@ -52,6 +52,7 @@ add_subdirectory(${UNLEASHED_RECOMP_TOOLS_ROOT})
 # Include sub-projects.
 option(BUILD_TOOLS_ONLY "Build only tools" OFF)
 if (NOT BUILD_TOOLS_ONLY)
+    enable_testing()
     add_subdirectory("UnleashedRecompLib")
     add_subdirectory("UnleashedRecomp")
 endif()

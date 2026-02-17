@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <kernel/function.h>
 #include <kernel/xdm.h>
+#include "misc_impl.h"
 
 uint32_t QueryPerformanceCounterImpl(LARGE_INTEGER* lpPerformanceCount)
 {
@@ -17,7 +18,7 @@ uint32_t QueryPerformanceFrequencyImpl(LARGE_INTEGER* lpFrequency)
 
 uint32_t GetTickCountImpl()
 {
-    return uint32_t(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+    return GetTickCountImpl_Internal();
 }
 
 void GlobalMemoryStatusImpl(XLPMEMORYSTATUS lpMemoryStatus)
