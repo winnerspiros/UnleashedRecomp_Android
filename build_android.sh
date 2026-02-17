@@ -34,6 +34,16 @@ else
 fi
 cd ../..
 
+# Apply SWA Patch
+echo "Applying SWA patch..."
+cd UnleashedRecomp/api
+if grep -q "// virtual ~IParallelJob" Hedgehog/Universe/Thread/hhParallelJob.h; then
+    git apply ../../patches/swa_virtual_funcs.patch
+else
+    echo "SWA patch already applied."
+fi
+cd ../..
+
 # Build APK
 echo "Building APK..."
 cd android

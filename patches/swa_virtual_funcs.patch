@@ -1,0 +1,16 @@
+diff --git a/Hedgehog/Universe/Thread/hhParallelJob.h b/Hedgehog/Universe/Thread/hhParallelJob.h
+index 60b59be..04e9882 100644
+--- a/Hedgehog/Universe/Thread/hhParallelJob.h
++++ b/Hedgehog/Universe/Thread/hhParallelJob.h
+@@ -14,8 +14,8 @@ namespace Hedgehog::Universe
+         IParallelJob(const swa_null_ctor&) {}
+
+         // TODO: implement virtual functions.
+-        // virtual ~IParallelJob() = default;
+-        //
+-        // virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) = 0;
++        virtual ~IParallelJob() = default;
++
++        virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) = 0;
+     };
+ }
