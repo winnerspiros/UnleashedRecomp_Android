@@ -25,6 +25,8 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project("UnleashedRecomp-ALL")
 
+enable_testing()
+
 if (APPLE)
     enable_language(OBJC OBJCXX)
 endif()
