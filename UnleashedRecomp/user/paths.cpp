@@ -20,41 +20,12 @@ std::filesystem::path BuildUserPath()
 
     std::filesystem::path userPath;
 
-#if defined(_WIN32)
-    PWSTR knownPath = NULL;
-    if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &knownPath) == S_OK)
-        userPath = std::filesystem::path{ knownPath } / USER_DIRECTORY;
-
-    CoTaskMemFree(knownPath);
-#elif defined(ANDROID)
+#if defined(ANDROID)
     char* prefPath = SDL_GetPrefPath("hedge-dev", "UnleashedRecomp");
     if (prefPath)
     {
         userPath = std::filesystem::path(prefPath);
         SDL_free(prefPath);
-    }
-#elif defined(__linux__) || defined(__APPLE__)
-    const char* homeDir = getenv("HOME");
-#if defined(__linux__)
-    if (homeDir == nullptr)
-    {
-        homeDir = getpwuid(getuid())->pw_dir;
-    }
-#endif
-
-    if (homeDir != nullptr)
-    {
-        // Prefer to store in the .config directory if it exists. Use the home directory otherwise.
-        std::filesystem::path homePath = homeDir;
-#if defined(__linux__)
-        std::filesystem::path configPath = homePath / ".config";
-#else
-        std::filesystem::path configPath = homePath / "Library" / "Application Support";
-#endif
-        if (std::filesystem::exists(configPath))
-            userPath = configPath / USER_DIRECTORY;
-        else
-            userPath = homePath / ("." USER_DIRECTORY);
     }
 #else
     static_assert(false, "GetUserPath() not implemented for this platform.");

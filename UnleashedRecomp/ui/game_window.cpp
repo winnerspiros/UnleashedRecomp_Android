@@ -7,11 +7,6 @@
 #include <sdl_listener.h>
 #include <SDL_syswm.h>
 
-#if _WIN32
-#include <dwmapi.h>
-#include <shellscalingapi.h>
-#endif
-
 #include <res/images/game_icon.bmp.h>
 #include <res/images/game_icon_night.bmp.h>
 
@@ -157,10 +152,6 @@ int Window_OnSDLEvent(void*, SDL_Event* event)
 
 void GameWindow::Init(const char* sdlVideoDriver)
 {
-#ifdef __linux__
-    SDL_SetHint("SDL_APP_ID", "io.github.hedge_dev.unleashedrecomp");
-#endif
-
     if (SDL_VideoInit(sdlVideoDriver) != 0 && sdlVideoDriver)
     {
         LOGFN_ERROR("Failed to initialise the SDL video driver: \"{}\". Falling back to default.", sdlVideoDriver);
@@ -174,10 +165,6 @@ void GameWindow::Init(const char* sdlVideoDriver)
 
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
     SDL_AddEventWatch(Window_OnSDLEvent, s_pWindow);
-
-#ifdef _WIN32
-    SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-#endif
 
     s_x = Config::WindowX;
     s_y = Config::WindowY;
@@ -205,21 +192,8 @@ void GameWindow::Init(const char* sdlVideoDriver)
     SDL_VERSION(&info.version);
     SDL_GetWindowWMInfo(s_pWindow, &info);
 
-#if defined(_WIN32)
-    s_renderWindow = info.info.win.window;
-
-    if (Config::DisableDWMRoundedCorners)
-    {
-        DWM_WINDOW_CORNER_PREFERENCE wcp = DWMWCP_DONOTROUND;
-        DwmSetWindowAttribute(s_renderWindow, DWMWA_WINDOW_CORNER_PREFERENCE, &wcp, sizeof(wcp));
-    }
-#elif defined(SDL_VULKAN_ENABLED)
+#if defined(SDL_VULKAN_ENABLED)
     s_renderWindow = s_pWindow;
-#elif defined(__linux__)
-    s_renderWindow = { info.info.x11.display, info.info.x11.window };
-#elif defined(__APPLE__)
-    s_renderWindow.window = info.info.cocoa.window;
-    s_renderWindow.view = SDL_Metal_GetLayer(SDL_Metal_CreateView(s_pWindow));
 #else
     static_assert(false, "Unknown platform.");
 #endif
@@ -305,22 +279,6 @@ void GameWindow::SetTitle(const char* title)
 
 void GameWindow::SetTitleBarColour()
 {
-#if _WIN32
-    if (os::user::IsDarkTheme())
-    {
-        auto version = os::version::GetOSVersion();
-
-        if (version.Major < 10 || version.Build <= 17763)
-            return;
-
-        auto flag = version.Build >= 18985
-            ? DWMWA_USE_IMMERSIVE_DARK_MODE
-            : 19; // DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1
-
-        const DWORD useImmersiveDarkMode = 1;
-        DwmSetWindowAttribute(s_renderWindow, flag, &useImmersiveDarkMode, sizeof(useImmersiveDarkMode));
-    }
-#endif
 }
 
 bool GameWindow::IsFullscreen()

@@ -16,11 +16,7 @@ add_compile_options(
     -fno-strict-aliasing
 )
 
-if (WIN32)
-    add_compile_options(/fp:strict)
-else()
-    add_compile_options(-ffp-model=strict)
-endif()
+add_compile_options(-ffp-model=strict)
 
 set(UNLEASHED_RECOMP_PPC_RECOMPILED_SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/ppc/ppc_config.h"

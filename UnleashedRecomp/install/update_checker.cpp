@@ -2,12 +2,9 @@
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <SDL.h>
 
 #include "version.h"
-
-#ifdef WIN32
-#include <shellapi.h>
-#endif
 
 #include <os/logger.h>
 
@@ -161,15 +158,5 @@ UpdateChecker::Result UpdateChecker::check()
 
 void UpdateChecker::visitWebsite()
 {
-#if defined(WIN32)
-    ShellExecuteA(0, 0, VISIT_URL, 0, 0, SW_SHOW);
-#elif defined(__linux__)
-    std::string command = "xdg-open " + std::string(VISIT_URL) + " &";
-    std::system(command.c_str());
-#elif defined(__APPLE__)
-    std::string command = "open " + std::string(VISIT_URL) + " &";
-    std::system(command.c_str());
-#else
-    static_assert(false, "Visit website not implemented for this platform.");
-#endif
+    SDL_OpenURL(VISIT_URL);
 }

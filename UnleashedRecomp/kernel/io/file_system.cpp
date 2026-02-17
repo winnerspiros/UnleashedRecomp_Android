@@ -109,9 +109,6 @@ FileHandle* XCreateFileA
     fileStream.open(filePath, fileOpenMode);
     if (!fileStream.is_open())
     {
-#ifdef _WIN32
-        GuestThread::SetLastError(GetLastError());
-#endif
         return GetInvalidKernelObject<FileHandle>();
     }
 

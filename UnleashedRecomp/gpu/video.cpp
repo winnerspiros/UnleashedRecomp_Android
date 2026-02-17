@@ -5109,10 +5109,6 @@ static std::thread g_renderThread([]
     perf::SetThreadPriority(true);
     perf::RegisterHintThread(gettid());
 #endif
-#ifdef _WIN32
-        SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-        GuestThread::SetThreadName(GetCurrentThreadId(), "Render Thread");
-#endif
 
         RenderCommand commands[32];
 
@@ -5557,10 +5553,6 @@ static moodycamel::BlockingConcurrentQueue<TextureLoadTask> g_textureLoadQueue;
 
 static void TextureLoaderThread()
 {
-#ifdef _WIN32
-    GuestThread::SetThreadName(GetCurrentThreadId(), "Texture Loader Thread");
-#endif
-
     TextureLoadTask task;
     while (true)
     {
@@ -6301,12 +6293,6 @@ static void CompilePipeline(XXH64_hash_t pipelineHash, const PipelineState& pipe
 
 static void PipelineCompilerThread()
 {
-#ifdef _WIN32
-    int threadPriority = THREAD_PRIORITY_LOWEST;
-    SetThreadPriority(GetCurrentThread(), threadPriority);
-    GuestThread::SetThreadName(GetCurrentThreadId(), "Pipeline Compiler Thread");
-#endif
-
     std::unique_ptr<GuestThreadContext> ctx;
 
     while (true)
@@ -6316,22 +6302,6 @@ static void PipelineCompilerThread()
 
         if (ctx == nullptr)
             ctx = std::make_unique<GuestThreadContext>(0);
-
-#ifdef _WIN32
-        int newThreadPriority = threadPriority;
-
-        bool loading = *SWA::SGlobals::ms_IsLoading;
-        if (loading)
-            newThreadPriority = THREAD_PRIORITY_HIGHEST;
-        else
-            newThreadPriority = THREAD_PRIORITY_LOWEST;
-
-        if (newThreadPriority != threadPriority)
-        {
-            SetThreadPriority(GetCurrentThread(), newThreadPriority);
-            threadPriority = newThreadPriority;
-        }
-#endif
 
         CompilePipeline(queueItem.pipelineHash, queueItem.pipelineState
 #ifdef ASYNC_PSO_DEBUG
@@ -7172,11 +7142,6 @@ static bool CheckMadeAll(const T& modelData)
 
 static void PipelineTaskConsumerThread()
 {
-#ifdef _WIN32
-    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
-    GuestThread::SetThreadName(GetCurrentThreadId(), "Pipeline Task Consumer Thread");
-#endif
-
     std::vector<PipelineTask> localPipelineTaskQueue;
     std::unique_ptr<GuestThreadContext> ctx;
 
