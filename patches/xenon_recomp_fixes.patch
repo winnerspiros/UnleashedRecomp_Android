@@ -49,6 +49,42 @@ index fa91527..dbd4fa6 100644
                  return false;
              }
          }
+@@ -1255,9 +1256,33 @@ bool Recompiler::Recompile(
+         break;
+
+     case PPC_INST_MFOCRF:
+-        // TODO: don't hardcode to cr6
+-        println("\t{}.u64 = ({}.lt << 7) | ({}.gt << 6) | ({}.eq << 5) | ({}.so << 4);", r(insn.operands[0]), cr(6), cr(6), cr(6), cr(6));
++    {
++        uint32_t mask = insn.operands[1];
++        int crIndex = 0;
++        while (crIndex < 8)
++        {
++            if ((mask >> (7 - crIndex)) & 1)
++                break;
++            crIndex++;
++        }
++
++        if (crIndex < 8)
++        {
++            const int shift = 28 - 4 * crIndex;
++            println("\t{}.u64 = ({}.lt << {}) | ({}.gt << {}) | ({}.eq << {}) | ({}.so << {});",
++                r(insn.operands[0]),
++                cr(crIndex), shift + 3,
++                cr(crIndex), shift + 2,
++                cr(crIndex), shift + 1,
++                cr(crIndex), shift);
++        }
++        else
++        {
++            fmt::println("Error: Invalid mask for MFOCRF at {:X}: 0x{:X}", base, mask);
++            println("\t{}.u64 = 0;", r(insn.operands[0]));
++        }
+         break;
++    }
+
+     case PPC_INST_MFTB:
+         println("\t{}.u64 = __rdtsc();", r(insn.operands[0]));
 diff --git a/XenonUtils/xex_patcher.cpp b/XenonUtils/xex_patcher.cpp
 index 8492a5d..f9f9203 100644
 --- a/XenonUtils/xex_patcher.cpp
