@@ -68,9 +68,6 @@ enum class EChannelConfiguration : uint32_t
 enum class EGraphicsAPI : uint32_t
 {
     Auto,
-#ifdef UNLEASHED_RECOMP_D3D12
-    D3D12,
-#endif
     Vulkan
 };
 

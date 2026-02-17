@@ -303,9 +303,6 @@ CONFIG_DEFINE_ENUM_TEMPLATE(EVoiceLanguage)
 CONFIG_DEFINE_ENUM_TEMPLATE(EGraphicsAPI)
 {
     { "Auto", EGraphicsAPI::Auto },
-#ifdef UNLEASHED_RECOMP_D3D12
-    { "D3D12",  EGraphicsAPI::D3D12 },
-#endif
     { "Vulkan", EGraphicsAPI::Vulkan }
 };
 
