@@ -15,6 +15,26 @@ index b89407f..53fa2af 100644
  add_subdirectory(${XENONUTILS_ROOT})
 
  # Only tests if this is the top level project
+diff --git a/XenonAnalyse/function.cpp b/XenonAnalyse/function.cpp
+index 34add40..06c9ebe 100644
+--- a/XenonAnalyse/function.cpp
++++ b/XenonAnalyse/function.cpp
+@@ -70,6 +70,15 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
+             break; // it's hideover
+         }
+
++        const size_t existingBlock = fn.SearchBlock(addr);
++        if (existingBlock != -1 && existingBlock != blockStack.back())
++        {
++            // We ran into another block, which means this path merges into an existing one
++            blockStack.pop_back();
++            RESTORE_DATA();
++            continue;
++        }
++
+         auto& curBlock = blocks[blockStack.back()];
+         DEBUG(const auto blockBase = curBlock.base);
+         const uint32_t instruction = ByteSwap(*data);
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
 index fa91527..dbd4fa6 100644
 --- a/XenonRecomp/recompiler.cpp
@@ -49,6 +69,39 @@ index fa91527..dbd4fa6 100644
                  return false;
              }
          }
+diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
+index 0361b0f..215878d 100644
+--- a/XenonUtils/xbox.h
++++ b/XenonUtils/xbox.h
+@@ -247,13 +247,13 @@ typedef struct _XXOVERLAPPED {
+         {
+             be<uint32_t> Error;
+             be<uint32_t> Length;
+-        };
++        } AsError;
+
+         struct
+         {
+             uint32_t InternalLow;
+             uint32_t InternalHigh;
+-        };
++        } AsInternal;
+     };
+     uint32_t InternalContext;
+     be<uint32_t> hEvent;
+diff --git a/XenonUtils/xdbf.h b/XenonUtils/xdbf.h
+index 347ac2c..b9e5b87 100644
+--- a/XenonUtils/xdbf.h
++++ b/XenonUtils/xdbf.h
+@@ -132,7 +132,7 @@ union XDBFTitleID
+     {
+         be<uint16_t> u16;
+         char u8[0x02];
+-    };
++    } AsU16;
+
+     be<uint32_t> u32;
+ };
 diff --git a/XenonUtils/xex_patcher.cpp b/XenonUtils/xex_patcher.cpp
 index 8492a5d..f9f9203 100644
 --- a/XenonUtils/xex_patcher.cpp
