@@ -1,0 +1,37 @@
+diff --git a/SWA/System/ApplicationDocument.h b/SWA/System/ApplicationDocument.h
+index 1e6ab27..f1cc44c 100644
+--- a/SWA/System/ApplicationDocument.h
++++ b/SWA/System/ApplicationDocument.h
+@@ -1,6 +1,7 @@
+ #pragma once
+
+ #include <SWA.inl>
++#include <Hedgehog/Base/Thread/hhSynchronizedPtr.h>
+ #include <SWA/System/Game.h>
+ #include <SWA/System/GameParameter.h>
+ #include <SWA/System/GammaController.h>
+@@ -89,8 +90,7 @@ namespace SWA
+             SWA_INSERT_PADDING(0x08);
+         };
+
+-        // TODO: Hedgehog::Base::TSynchronizedPtr<CApplicationDocument>
+-        static CApplicationDocument* GetInstance();
++        static Hedgehog::Base::TSynchronizedPtr<CApplicationDocument> GetInstance();
+
+         xpointer<CMember> m_pMember;
+         be<ELanguage> m_Language;
+diff --git a/SWA/System/ApplicationDocument.inl b/SWA/System/ApplicationDocument.inl
+index 4e1652d..6831870 100644
+--- a/SWA/System/ApplicationDocument.inl
++++ b/SWA/System/ApplicationDocument.inl
+@@ -1,8 +1,7 @@
+ namespace SWA
+ {
+-    // TODO: Hedgehog::Base::TSynchronizedPtr<CApplicationDocument>
+-    inline CApplicationDocument* CApplicationDocument::GetInstance()
++    inline Hedgehog::Base::TSynchronizedPtr<CApplicationDocument> CApplicationDocument::GetInstance()
+     {
+-        return *(xpointer<CApplicationDocument>*)MmGetHostAddress(0x833678A0);
++        return static_cast<CApplicationDocument*>(*(xpointer<CApplicationDocument>*)MmGetHostAddress(0x833678A0));
+     }
+ }
