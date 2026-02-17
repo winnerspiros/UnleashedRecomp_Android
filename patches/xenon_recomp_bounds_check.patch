@@ -1,0 +1,12 @@
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -366,6 +366,9 @@
+     // TODO (Sajid): Check for out of bounds access
+     auto mmioStore = [&]() -> bool
+         {
++            if (base + 4 >= fn.base + fn.size)
++                return false;
++
+             return *(data + 1) == c_eieio;
+         };

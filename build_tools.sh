@@ -16,6 +16,14 @@ if [ -f "patches/xenon_recomp_fixes.patch" ]; then
     cd ../..
 fi
 
+# Apply XenonRecomp bounds check patch
+if [ -f "patches/xenon_recomp_bounds_check.patch" ]; then
+    echo "Applying XenonRecomp bounds check..."
+    cd tools/XenonRecomp
+    git apply ../../patches/xenon_recomp_bounds_check.patch || echo "Warning: Failed to apply bounds check patch or already applied."
+    cd ../..
+fi
+
 echo "=== Building GCC compatible tools ==="
 rm -rf build_tools/build_gcc
 mkdir -p build_tools/build_gcc
