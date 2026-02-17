@@ -155,3 +155,31 @@ index 3e224b4..4b78abf 100644
              else if ((operand->flags & PPC_OPERAND_CR) == 0
                  || (dialect & PPC_OPCODE_PPC) == 0)
                  stream = stream + sprintf(stream, "%ld", value);
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+index fa91527..147f965 100644
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -1587,13 +1587,21 @@ bool Recompiler::Recompile(
+         break;
+
+     case PPC_INST_STVEHX:
+-        // TODO: vectorize
++        // Vectorized implementation
+         // NOTE: accounting for the full vector reversal here
+         print("\t{} = (", ea());
+         if (insn.operands[1] != 0)
+             print("{}.u32 + ", r(insn.operands[1]));
+         println("{}.u32) & ~0x1;", r(insn.operands[2]));
+-        println("\tPPC_STORE_U16(ea, {}.u16[7 - (({} & 0xF) >> 1)]);", v(insn.operands[0]), ea());
++
++        println("\t{{");
++        println("\t\tsimde__m128i v_offset = simde_mm_set1_epi8((int8_t)({} & 0xE));", ea());
++        println("\t\tsimde__m128i v_base = simde_mm_setr_epi8(14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);");
++        println("\t\tsimde__m128i v_perm = simde_mm_sub_epi8(v_base, v_offset);");
++        println("\t\tsimde__m128i v_src = simde_mm_load_si128((simde__m128i*){}.u8);", v(insn.operands[0]));
++        println("\t\tsimde__m128i v_res = simde_mm_shuffle_epi8(v_src, v_perm);");
++        println("\t\tPPC_STORE_U16({}, (uint16_t)simde_mm_cvtsi128_si32(v_res));", ea());
++        println("\t}}");
+         break;
+
+     case PPC_INST_STVEWX:
