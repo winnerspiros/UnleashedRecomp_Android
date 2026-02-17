@@ -34,6 +34,16 @@ else
 fi
 cd ../..
 
+# Apply SWA Virtual Fixes Patch
+echo "Applying SWA Virtual Fixes patch..."
+cd UnleashedRecomp/api
+if grep -q "// virtual ~CUpdateUnit();" Hedgehog/Universe/Engine/hhUpdateUnit.h; then
+    git apply ../../patches/swa_virtual_fixes.patch
+else
+    echo "Patch already applied."
+fi
+cd ../..
+
 # Build APK
 echo "Building APK..."
 cd android

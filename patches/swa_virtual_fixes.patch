@@ -1,0 +1,55 @@
+diff --git a/Hedgehog/Universe/Engine/hhUpdateUnit.h b/Hedgehog/Universe/Engine/hhUpdateUnit.h
+index 64513e6..46bebe2 100644
+--- a/Hedgehog/Universe/Engine/hhUpdateUnit.h
++++ b/Hedgehog/Universe/Engine/hhUpdateUnit.h
+@@ -8,18 +8,19 @@ namespace Hedgehog::Universe
+     class CUpdateUnit : public Base::CObject, public IParallelJob
+     {
+     public:
+-        xpointer<void> m_pVftable;
+         SWA_INSERT_PADDING(0x20);
+
+         CUpdateUnit(const swa_null_ctor& nil) : CObject(nil), IParallelJob(nil) {}
+-        CUpdateUnit();
++        CUpdateUnit() {}
+
+-        // TODO: implement virtual functions.
+-        // virtual ~CUpdateUnit();
+-        //
+-        // virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) override;
+-        //
+-        // virtual void UpdateParallel(const SUpdateInfo& in_rUpdateInfo) {}
+-        // virtual void UpdateSerial(const SUpdateInfo& in_rUpdateInfo) {}
++        virtual ~CUpdateUnit() {}
++
++        virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) override
++        {
++            UpdateParallel(in_rUpdateInfo);
++        }
++
++        virtual void UpdateParallel(const SUpdateInfo& in_rUpdateInfo) {}
++        virtual void UpdateSerial(const SUpdateInfo& in_rUpdateInfo) {}
+     };
+ }
+diff --git a/Hedgehog/Universe/Thread/hhParallelJob.h b/Hedgehog/Universe/Thread/hhParallelJob.h
+index 60b59be..d2a4942 100644
+--- a/Hedgehog/Universe/Thread/hhParallelJob.h
++++ b/Hedgehog/Universe/Thread/hhParallelJob.h
+@@ -8,14 +8,11 @@ namespace Hedgehog::Universe
+     class IParallelJob
+     {
+     public:
+-        xpointer<void> m_pVftable;
+-
+         IParallelJob() {}
+         IParallelJob(const swa_null_ctor&) {}
+
+-        // TODO: implement virtual functions.
+-        // virtual ~IParallelJob() = default;
+-        //
+-        // virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) = 0;
++        virtual ~IParallelJob() = default;
++
++        virtual void ExecuteParallelJob(const SUpdateInfo& in_rUpdateInfo) = 0;
+     };
+ }
