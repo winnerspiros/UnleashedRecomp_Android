@@ -9,26 +9,26 @@ OUTPUT_BIN_DIR="$(pwd)/build_tools/bin"
 mkdir -p "$OUTPUT_BIN_DIR"
 
 # Apply XenonRecomp patch
-if [ -f "patches/xenon_recomp_fixes.patch" ]; then
-    echo "Applying XenonRecomp fixes..."
-    cd tools/XenonRecomp
-    git apply ../../patches/xenon_recomp_fixes.patch || echo "Warning: Failed to apply patch or already applied."
-    cd ../..
-fi
+# if [ -f "patches/xenon_recomp_fixes.patch" ]; then
+#     echo "Applying XenonRecomp fixes..."
+#     cd tools/XenonRecomp
+#     git apply ../../patches/xenon_recomp_fixes.patch || echo "Warning: Failed to apply patch or already applied."
+#     cd ../..
+# fi
 
 # Apply absolute branch fixes
-if [ -f "patches/xenon_recomp_absolute_branch.patch" ]; then
-    echo "Applying absolute branch fixes..."
-    cd tools/XenonRecomp
-    git apply ../../patches/xenon_recomp_absolute_branch.patch || echo "Warning: Failed to apply absolute branch patch or already applied."
-    cd ../..
-fi
+# if [ -f "patches/xenon_recomp_absolute_branch.patch" ]; then
+#     echo "Applying absolute branch fixes..."
+#     cd tools/XenonRecomp
+#     git apply ../../patches/xenon_recomp_absolute_branch.patch || echo "Warning: Failed to apply absolute branch patch or already applied."
+#     cd ../..
+# fi
 
 # Apply VPKD3D128 vectorization
 if [ -f "patches/xenon_recomp_vpkd3d128.patch" ]; then
     echo "Applying VPKD3D128 vectorization..."
     cd tools/XenonRecomp
-    git apply ../../patches/xenon_recomp_vpkd3d128.patch || echo "Warning: Failed to apply VPKD3D128 patch or already applied."
+    git apply -v ../../patches/xenon_recomp_vpkd3d128.patch || { echo "Error: Failed to apply VPKD3D128 patch."; exit 1; }
     cd ../..
 fi
 
