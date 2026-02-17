@@ -16,142 +16,62 @@ index b89407f..53fa2af 100644
 
  # Only tests if this is the top level project
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
-index fa91527..dbd4fa6 100644
+index fa91527..2ca92ba 100644
 --- a/XenonRecomp/recompiler.cpp
 +++ b/XenonRecomp/recompiler.cpp
-@@ -12,6 +12,7 @@ static uint64_t ComputeMask(uint32_t mstart, uint32_t mstop)
+@@ -1629,8 +1629,16 @@ bool Recompiler::Recompile(
+             print("{}.u32 + ", r(insn.operands[1]));
+         println("{}.u32;", r(insn.operands[2]));
 
- bool Recompiler::LoadConfig(const std::string_view& configFilePath)
+-        println("\tfor (size_t i = 0; i < ({} & 0xF); i++)", ea());
+-        println("\t\tPPC_STORE_U8({} - i - 1, {}.u8[i]);", ea(), v(insn.operands[0]));
++        println("\t{");
++        println("\t\tuint32_t sh = {} & 0xF;", ea());
++        println("\t\tif (sh > 0) {");
++        println("\t\t\tsimde__m128i mask = simde_mm_load_si128((simde__m128i*)&VectorMaskR[sh * 16]);");
++        println("\t\t\tsimde__m128i data = simde_mm_shuffle_epi8(simde_mm_load_si128((simde__m128i*){}.u8), mask);", v(insn.operands[0]));
++        println("\t\t\tsimde__m128i mem = simde_mm_load_si128((simde__m128i*)(base + ({} & ~0xF)));", ea());
++        println("\t\t\tsimde__m128i blend_mask = simde_mm_cmpeq_epi8(mask, simde_mm_set1_epi8(char(0xFF)));");
++        println("\t\t\tsimde_mm_store_si128((simde__m128i*)(base + ({} & ~0xF)), simde_mm_blendv_epi8(data, mem, blend_mask));", ea());
++        println("\t\t}");
++        println("\t}");
+         break;
+
+     case PPC_INST_STVX:
+diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
+index 0361b0f..8763c18 100644
+--- a/XenonUtils/xbox.h
++++ b/XenonUtils/xbox.h
+@@ -29,15 +29,6 @@ struct be
  {
-+    fmt::println("Loading config from: {}", configFilePath);
-     config.Load(configFilePath);
+     T value;
 
-     std::vector<uint8_t> file;
-@@ -83,7 +84,20 @@ bool Recompiler::LoadConfig(const std::string_view& configFilePath)
-             }
-             else
-             {
--                fmt::println("ERROR: Unable to load the patch file");
-+                const auto fullPath = config.directoryPath + config.patchFilePath;
-+                fmt::println("ERROR: Unable to load the patch file: {}", fullPath);
-+
-+                std::error_code ec;
-+                if (std::filesystem::exists(fullPath, ec))
-+                {
-+                    auto fileSize = std::filesystem::file_size(fullPath, ec);
-+                    fmt::println("File exists. Size: {} bytes", fileSize);
-+                }
-+                else
-+                {
-+                    fmt::println("File does not exist. Error: {}", ec.message());
-+                }
-+
-                 return false;
-             }
-         }
-diff --git a/XenonUtils/xex_patcher.cpp b/XenonUtils/xex_patcher.cpp
-index 8492a5d..f9f9203 100644
---- a/XenonUtils/xex_patcher.cpp
-+++ b/XenonUtils/xex_patcher.cpp
-@@ -16,6 +16,7 @@
- #include <cassert>
- #include <climits>
- #include <fstream>
-+#include <iostream>
-
- #include <aes.hpp>
- #include <lzx.h>
-@@ -304,7 +305,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-     int resultCode = lzxDeltaApplyPatch(&patchDescriptor->info, patchDescriptor->size, ((const Xex2FileNormalCompressionInfo*)(patchFileFormatInfo + 1))->windowSize, outBytes.data());
-     if (resultCode != 0)
+-    be() : value(0)
+-    {
+-    }
+-
+-    be(const T v)
+-    {
+-        set(v);
+-    }
+-
+     static T byteswap(T value)
      {
--        return Result::PatchFailed;
-+        std::cerr << "lzxDeltaApplyPatch failed: " << resultCode << std::endl;
-+        return Result::PatchDeltaFailed;
+         if constexpr (std::is_same_v<T, double>)
+@@ -101,12 +92,14 @@ struct xpointer
+ {
+     be<uint32_t> ptr;
+
+-    xpointer() : ptr(0)
++    xpointer()
+     {
++        ptr = 0;
      }
 
-     // Make the header the specified size by the patch.
-@@ -428,7 +430,10 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-             s.finalize(blockCalcedDigest);
-
-             if (memcmp(blockCalcedDigest, blocks->blockHash, 0x14) != 0)
--                return Result::PatchFailed;
-+            {
-+                std::cerr << "Hash mismatch in base xex block!" << std::endl;
-+                return Result::PatchHashMismatch;
-+            }
-
-             p += 4;
-             p += 20;
-@@ -457,7 +462,10 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-         resultCode = lzxDecompress(compressBuffer.get(), d - compressBuffer.get(), buffer, uncompressedSize, ((const Xex2FileNormalCompressionInfo*)(fileFormatInfo + 1))->windowSize, nullptr, 0);
-
-         if (resultCode)
--            return Result::PatchFailed;
-+        {
-+            std::cerr << "lzxDecompress failed: " << resultCode << std::endl;
-+            return Result::PatchDecompressionFailed;
-+        }
-     }
-     else if (fileFormatInfo->compressionType == XEX_COMPRESSION_DELTA)
+-    xpointer(T* p) : ptr(p != nullptr ? (reinterpret_cast<size_t>(p) - reinterpret_cast<size_t>(MmGetHostAddress(0))) : 0)
++    xpointer(T* p)
      {
-@@ -471,6 +479,7 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-     Xex2OptFileFormatInfo *newFileFormatInfo = (Xex2OptFileFormatInfo *)(getOptHeaderPtr(outBytes.data(), XEX_HEADER_FILE_FORMAT_INFO));
-     if (newFileFormatInfo == nullptr)
-     {
-+        std::cerr << "Could not find file format info in new xex!" << std::endl;
-         return Result::PatchFailed;
++        ptr = (p != nullptr ? (reinterpret_cast<size_t>(p) - reinterpret_cast<size_t>(MmGetHostAddress(0))) : 0);
      }
 
-@@ -514,7 +523,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-         sha1Context.finalize(sha1Digest);
-         if (memcmp(sha1Digest, currentBlock->blockHash, DigestSize) != 0)
-         {
--            return Result::PatchFailed;
-+            std::cerr << "Hash mismatch in patch block!" << std::endl;
-+            return Result::PatchHashMismatch;
-         }
-
-         patchDataCursor += 24;
-@@ -523,7 +533,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-         uint32_t blockDataSize = currentBlock->blockSize - 24;
-         if (lzxDeltaApplyPatch((const Xex2DeltaPatch *)(patchDataCursor), blockDataSize, ((const Xex2FileNormalCompressionInfo*)(patchFileFormatInfo + 1))->windowSize, outExe) != 0)
-         {
--            return Result::PatchFailed;
-+            std::cerr << "lzxDeltaApplyPatch failed for patch block!" << std::endl;
-+            return Result::PatchDeltaFailed;
-         }
-
-         patchDataCursor += blockDataSize;
-diff --git a/XenonUtils/xex_patcher.h b/XenonUtils/xex_patcher.h
-index 44b2bf0..487cd1b 100644
---- a/XenonUtils/xex_patcher.h
-+++ b/XenonUtils/xex_patcher.h
-@@ -29,7 +29,10 @@ struct XexPatcher
-         PatchFileInvalid,
-         PatchIncompatible,
-         PatchFailed,
--        PatchUnsupported
-+        PatchUnsupported,
-+        PatchHashMismatch,
-+        PatchDecompressionFailed,
-+        PatchDeltaFailed
-     };
-
-     static Result apply(const uint8_t* xexBytes, size_t xexBytesSize, const uint8_t* patchBytes, size_t patchBytesSize, std::vector<uint8_t> &outBytes, bool skipData);
-diff --git a/thirdparty/disasm/ppc-dis.c b/thirdparty/disasm/ppc-dis.c
-index 3e224b4..4b78abf 100644
---- a/thirdparty/disasm/ppc-dis.c
-+++ b/thirdparty/disasm/ppc-dis.c
-@@ -5765,9 +5765,9 @@ again:
-             else if ((operand->flags & PPC_OPERAND_VR) != 0)
-                 stream = stream + sprintf(stream, "v%ld", value);
-             else if ((operand->flags & PPC_OPERAND_RELATIVE) != 0)
--                stream = stream + sprintf(stream, "0x%llx", memaddr + value);
-+                stream = stream + sprintf(stream, "0x%llx", (unsigned long long)(memaddr + value));
-             else if ((operand->flags & PPC_OPERAND_ABSOLUTE) != 0)
--                stream = stream + sprintf(stream, "0x%llx", (bfd_vma)value & 0xffffffff);
-+                stream = stream + sprintf(stream, "0x%llx", (unsigned long long)((bfd_vma)value & 0xffffffff));
-             else if ((operand->flags & PPC_OPERAND_CR) == 0
-                 || (dialect & PPC_OPCODE_PPC) == 0)
-                 stream = stream + sprintf(stream, "%ld", value);
+     T* get() const
