@@ -16,7 +16,7 @@ index b89407f..53fa2af 100644
 
  # Only tests if this is the top level project
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
-index fa91527..dbd4fa6 100644
+index fa91527..2061ec2 100644
 --- a/XenonRecomp/recompiler.cpp
 +++ b/XenonRecomp/recompiler.cpp
 @@ -12,6 +12,7 @@ static uint64_t ComputeMask(uint32_t mstart, uint32_t mstop)
@@ -49,8 +49,82 @@ index fa91527..dbd4fa6 100644
                  return false;
              }
          }
+@@ -254,15 +268,16 @@ void Recompiler::Analyse()
+     std::sort(functions.begin(), functions.end(), [](auto& lhs, auto& rhs) { return lhs.base < rhs.base; });
+ }
+
+-bool Recompiler::Recompile(
+-    const Function& fn,
+-    uint32_t base,
+-    const ppc_insn& insn,
+-    const uint32_t* data,
+-    std::unordered_map<uint32_t, RecompilerSwitchTable>::iterator& switchTable,
+-    RecompilerLocalVariables& localVariables,
+-    CSRState& csrState)
++bool Recompiler::Recompile(const RecompileArgs& args)
+ {
++    const Function& fn = args.fn;
++    uint32_t base = args.base;
++    const ppc_insn& insn = args.insn;
++    const uint32_t* data = args.data;
++    auto& switchTable = args.switchTable;
++    auto& localVariables = args.localVariables;
++    auto& csrState = args.csrState;
++
+     println("\t// {} {}", insn.opcode->name, insn.op_str);
+
+     // TODO: we could cache these formats in an array
+@@ -2427,7 +2442,8 @@ bool Recompiler::Recompile(const Function& fn)
+             if (insn.opcode->id == PPC_INST_BCTR && (*(data - 1) == 0x07008038 || *(data - 1) == 0x00000060) && switchTable == config.switchTables.end())
+                 fmt::println("Found a switch jump table at {:X} with no switch table entry present", base);
+
+-            if (!Recompile(fn, base, insn, data, switchTable, localVariables, csrState))
++            RecompileArgs args{fn, base, insn, data, switchTable, localVariables, csrState};
++            if (!Recompile(args))
+             {
+                 fmt::println("Unrecognized instruction at 0x{:X}: {}", base, insn.opcode->name);
+                 allRecompiled = false;
+diff --git a/XenonRecomp/recompiler.h b/XenonRecomp/recompiler.h
+index 8242db5..fbcc723 100644
+--- a/XenonRecomp/recompiler.h
++++ b/XenonRecomp/recompiler.h
+@@ -25,6 +25,17 @@ enum class CSRState
+     VMX
+ };
+
++struct RecompileArgs
++{
++    const Function& fn;
++    uint32_t base;
++    const ppc_insn& insn;
++    const uint32_t* data;
++    std::unordered_map<uint32_t, RecompilerSwitchTable>::iterator& switchTable;
++    RecompilerLocalVariables& localVariables;
++    CSRState& csrState;
++};
++
+ struct Recompiler
+ {
+     // Enforce In-order Execution of I/O constant for quick comparison
+@@ -52,15 +63,7 @@ struct Recompiler
+
+     void Analyse();
+
+-    // TODO: make a RecompileArgs struct instead this is getting messy
+-    bool Recompile(
+-        const Function& fn,
+-        uint32_t base,
+-        const ppc_insn& insn,
+-        const uint32_t* data,
+-        std::unordered_map<uint32_t, RecompilerSwitchTable>::iterator& switchTable,
+-        RecompilerLocalVariables& localVariables,
+-        CSRState& csrState);
++    bool Recompile(const RecompileArgs& args);
+
+     bool Recompile(const Function& fn);
+
 diff --git a/XenonUtils/xex_patcher.cpp b/XenonUtils/xex_patcher.cpp
-index 8492a5d..f9f9203 100644
+index 8492a5d..badb5c3 100644
 --- a/XenonUtils/xex_patcher.cpp
 +++ b/XenonUtils/xex_patcher.cpp
 @@ -16,6 +16,7 @@
@@ -95,15 +169,7 @@ index 8492a5d..f9f9203 100644
      }
      else if (fileFormatInfo->compressionType == XEX_COMPRESSION_DELTA)
      {
-@@ -471,6 +479,7 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
-     Xex2OptFileFormatInfo *newFileFormatInfo = (Xex2OptFileFormatInfo *)(getOptHeaderPtr(outBytes.data(), XEX_HEADER_FILE_FORMAT_INFO));
-     if (newFileFormatInfo == nullptr)
-     {
-+        std::cerr << "Could not find file format info in new xex!" << std::endl;
-         return Result::PatchFailed;
-     }
-
-@@ -514,7 +523,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
+@@ -514,7 +522,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
          sha1Context.finalize(sha1Digest);
          if (memcmp(sha1Digest, currentBlock->blockHash, DigestSize) != 0)
          {
@@ -113,7 +179,7 @@ index 8492a5d..f9f9203 100644
          }
 
          patchDataCursor += 24;
-@@ -523,7 +533,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
+@@ -523,7 +532,8 @@ XexPatcher::Result XexPatcher::apply(const uint8_t* xexBytes, size_t xexBytesSiz
          uint32_t blockDataSize = currentBlock->blockSize - 24;
          if (lzxDeltaApplyPatch((const Xex2DeltaPatch *)(patchDataCursor), blockDataSize, ((const Xex2FileNormalCompressionInfo*)(patchFileFormatInfo + 1))->windowSize, outExe) != 0)
          {
