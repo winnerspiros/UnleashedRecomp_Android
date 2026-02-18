@@ -12,7 +12,7 @@ index e505a5e..0574517 100644
 
      include(CheckCXXSymbolExists)
 diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
-index 698a418..79c02f1 100644
+index 698a418..2608b61 100644
 --- a/XenosRecomp/shader_recompiler.cpp
 +++ b/XenosRecomp/shader_recompiler.cpp
 @@ -1308,15 +1308,15 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
@@ -58,19 +58,28 @@ index 698a418..79c02f1 100644
          }
 
      #ifdef UNLEASHED_RECOMP
+@@ -1371,7 +1371,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+     }
+ #endif
+
+-    if (shaderContainer->definitionTableOffset != NULL)
++    if (shaderContainer->definitionTableOffset != 0)
+     {
+         auto definitionTable = reinterpret_cast<const DefinitionTable*>(shaderData + shaderContainer->definitionTableOffset);
+         auto definitions = definitionTable->definitions;
 @@ -1403,13 +1403,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
                          int8_t y;
                          int8_t z;
                          int8_t w;
 -                    };
-+                    } s;
++                    } val;
                  };
 
                  value = definition->values[i].get();
 
                  println("\tint4 i{} = int4({}, {}, {}, {});",
 -                    (definition->registerIndex - 8992) / 4 + i, x, y, z, w);
-+                    (definition->registerIndex - 8992) / 4 + i, s.x, s.y, s.z, s.w);
++                    (definition->registerIndex - 8992) / 4 + i, val.x, val.y, val.z, val.w);
              }
              definitions += 2;
              definitions += definition->count;
@@ -79,7 +88,7 @@ index 698a418..79c02f1 100644
              uint32_t code2;
              uint32_t code3;
 -        };
-+        } codes;
++        } raw;
      };
 
      auto controlFlowCode = code;
@@ -91,10 +100,10 @@ index 698a418..79c02f1 100644
 -        code1 = controlFlowCode[1] & 0xFFFF;
 -        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
 -        code3 = controlFlowCode[2] >> 16;
-+        codes.code0 = controlFlowCode[0];
-+        codes.code1 = controlFlowCode[1] & 0xFFFF;
-+        codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
-+        codes.code3 = controlFlowCode[2] >> 16;
++        raw.code0 = controlFlowCode[0];
++        raw.code1 = controlFlowCode[1] & 0xFFFF;
++        raw.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        raw.code3 = controlFlowCode[2] >> 16;
 
          for (auto& cfInstr : controlFlow)
          {
@@ -106,10 +115,10 @@ index 698a418..79c02f1 100644
 -        code1 = controlFlowCode[1] & 0xFFFF;
 -        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
 -        code3 = controlFlowCode[2] >> 16;
-+        codes.code0 = controlFlowCode[0];
-+        codes.code1 = controlFlowCode[1] & 0xFFFF;
-+        codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
-+        codes.code3 = controlFlowCode[2] >> 16;
++        raw.code0 = controlFlowCode[0];
++        raw.code1 = controlFlowCode[1] & 0xFFFF;
++        raw.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        raw.code3 = controlFlowCode[2] >> 16;
 
          for (auto& cfInstr : controlFlow)
          {

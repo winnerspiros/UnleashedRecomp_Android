@@ -48,6 +48,20 @@ else
 fi
 cd ../..
 
+# Apply XenosRecomp Patch
+echo "Applying XenosRecomp fixes..."
+cd tools/XenosRecomp
+if ! grep -q "MATCHES \"GNU|Clang\"" XenosRecomp/CMakeLists.txt; then
+    echo "Applying patch via git apply..."
+    if ! git apply ../../patches/xenos_recomp_fixes.patch; then
+        echo "git apply failed, attempting to use patch..."
+        patch -p1 < ../../patches/xenos_recomp_fixes.patch
+    fi
+else
+    echo "XenosRecomp fixes already applied."
+fi
+cd ../..
+
 # Apply SDL Android Patch
 echo "Applying SDL Android fixes..."
 cd thirdparty/SDL
