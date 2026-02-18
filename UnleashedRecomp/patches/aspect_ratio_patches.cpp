@@ -1643,34 +1643,29 @@ PPC_FUNC(sub_82449088)
 PPC_FUNC_IMPL(__imp__sub_82E54950);
 PPC_FUNC(sub_82E54950)
 {
-    if (Config::AspectRatio == EAspectRatio::OriginalNarrow)
-    {
-        // Luckily, they have shadow offset scale values that are only used in this function.
-        uint32_t x = PPC_LOAD_U32(0x8332B7B8);
-        uint32_t y = PPC_LOAD_U32(0x8332B7BC);
+    // Luckily, they have shadow offset scale values that are only used in this function.
+    uint32_t x = PPC_LOAD_U32(0x8332B7B8);
+    uint32_t y = PPC_LOAD_U32(0x8332B7BC);
 
-        PPCRegister scaled;
+    float scale = 1.5f - 0.5f * g_aspectRatioNarrowScale;
 
-        // X
-        scaled.u32 = x;
-        scaled.f32 *= 1.5f;
-        PPC_STORE_U32(0x8332B7B8, scaled.u32);
+    PPCRegister scaled;
 
-        // Y
-        scaled.u32 = y;
-        scaled.f32 *= 1.5f;
-        PPC_STORE_U32(0x8332B7BC, scaled.u32);
+    // X
+    scaled.u32 = x;
+    scaled.f32 *= scale;
+    PPC_STORE_U32(0x8332B7B8, scaled.u32);
 
-        __imp__sub_82E54950(ctx, base);
+    // Y
+    scaled.u32 = y;
+    scaled.f32 *= scale;
+    PPC_STORE_U32(0x8332B7BC, scaled.u32);
 
-        // Restore old values.
-        PPC_STORE_U32(0x8332B7B8, x);
-        PPC_STORE_U32(0x8332B7BC, y);
-    }
-    else
-    {
-        __imp__sub_82E54950(ctx, base);
-    }
+    __imp__sub_82E54950(ctx, base);
+
+    // Restore old values.
+    PPC_STORE_U32(0x8332B7B8, x);
+    PPC_STORE_U32(0x8332B7BC, y);
 }
 
 // Credits while Sonic is running are offseted by 133 pixels at 16:9.
