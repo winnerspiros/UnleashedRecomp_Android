@@ -128,3 +128,41 @@ index 3e224b4..4b78abf 100644
              else if ((operand->flags & PPC_OPERAND_CR) == 0
                  || (dialect & PPC_OPCODE_PPC) == 0)
                  stream = stream + sprintf(stream, "%ld", value);
+diff --git a/XenonUtils/memory_mapped_file.cpp b/XenonUtils/memory_mapped_file.cpp
+index ba3c5d8..9d29a18 100644
+--- a/XenonUtils/memory_mapped_file.cpp
++++ b/XenonUtils/memory_mapped_file.cpp
+@@ -121,27 +121,34 @@ void MemoryMappedFile::close()
+     if (fileView != nullptr)
+     {
+         UnmapViewOfFile(fileView);
++        fileView = nullptr;
+     }
+
+     if (fileMappingHandle != nullptr)
+     {
+         CloseHandle(fileMappingHandle);
++        fileMappingHandle = nullptr;
+     }
+
+     if (fileHandle != nullptr)
+     {
+         CloseHandle(fileHandle);
++        fileHandle = nullptr;
+     }
++    fileSize.QuadPart = 0;
+ #else
+     if (fileView != MAP_FAILED)
+     {
+         munmap(fileView, fileSize);
++        fileView = MAP_FAILED;
+     }
+
+     if (fileHandle != -1)
+     {
+         ::close(fileHandle);
++        fileHandle = -1;
+     }
++    fileSize = 0;
+ #endif
+ }
