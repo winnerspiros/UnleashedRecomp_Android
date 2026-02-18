@@ -28,3 +28,20 @@ target_link_libraries(test_config PRIVATE
 )
 
 add_test(NAME ConfigTest COMMAND test_config)
+
+# test_mod_loader
+add_executable(test_mod_loader test_mod_loader.cpp)
+
+target_include_directories(test_mod_loader PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
+)
+
+target_compile_features(test_mod_loader PRIVATE cxx_std_20)
+
+target_link_libraries(test_mod_loader PRIVATE
+    xxHash::xxhash
+)
+
+add_test(NAME ModLoaderTest COMMAND test_mod_loader)
