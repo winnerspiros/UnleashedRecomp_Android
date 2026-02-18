@@ -1,18 +1,5 @@
-diff --git a/XenosRecomp/CMakeLists.txt b/XenosRecomp/CMakeLists.txt
-index e505a5e..0574517 100644
---- a/XenosRecomp/CMakeLists.txt
-+++ b/XenosRecomp/CMakeLists.txt
-@@ -28,7 +28,7 @@ target_include_directories(XenosRecomp PRIVATE )
-
- target_precompile_headers(XenosRecomp PRIVATE pch.h)
-
--if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-     target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -fms-extensions)
-
-     include(CheckCXXSymbolExists)
 diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
-index 698a418..1a4d66a 100644
+index 698a418..e95023b 100644
 --- a/XenosRecomp/shader_recompiler.cpp
 +++ b/XenosRecomp/shader_recompiler.cpp
 @@ -1308,15 +1308,15 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
@@ -23,7 +10,7 @@ index 698a418..1a4d66a 100644
 +            } u;
 
 -            value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + i];
-+            u.value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + i];
++            u.u.value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + i];
 
 -            const char* usageType = USAGE_TYPES[uint32_t(vertexElement.usage)];
 +            const char* usageType = USAGE_TYPES[uint32_t(u.vertexElement.usage)];
@@ -54,7 +41,7 @@ index 698a418..1a4d66a 100644
 +                uint32_t(u.vertexElement.usageIndex), USAGE_SEMANTICS[uint32_t(u.vertexElement.usage)]);
 
 -            vertexElements.emplace(uint32_t(vertexElement.address), vertexElement);
-+            vertexElements.emplace(uint32_t(u.vertexElement.address), u.vertexElement);
++            u.vertexElements.emplace(uint32_t(u.vertexElement.address), u.vertexElement);
          }
 
      #ifdef UNLEASHED_RECOMP
@@ -79,7 +66,7 @@ index 698a418..1a4d66a 100644
          {
              auto vertexShader = reinterpret_cast<const VertexShader*>(shader);
 -            value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + vertexShader->vertexElementCount + i];
-+            u.value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + vertexShader->vertexElementCount + i];
++            u.u.value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + vertexShader->vertexElementCount + i];
              interpolators.emplace(i, fmt::format("o{}{}", USAGE_VARIABLES[uint32_t(interpolator.usage)], uint32_t(interpolator.usageIndex)));
          }
      }
@@ -100,10 +87,10 @@ index 698a418..1a4d66a 100644
 -        code1 = controlFlowCode[1] & 0xFFFF;
 -        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
 -        code3 = controlFlowCode[2] >> 16;
-+        codes.code0 = controlFlowCode[0];
-+        codes.code1 = controlFlowCode[1] & 0xFFFF;
-+        codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
-+        codes.code3 = controlFlowCode[2] >> 16;
++        codes.codes.code0 = controlFlowCode[0];
++        codes.codes.code1 = controlFlowCode[1] & 0xFFFF;
++        codes.codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        codes.codes.code3 = controlFlowCode[2] >> 16;
 
          for (auto& cfInstr : controlFlow)
          {
@@ -115,10 +102,10 @@ index 698a418..1a4d66a 100644
 -        code1 = controlFlowCode[1] & 0xFFFF;
 -        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
 -        code3 = controlFlowCode[2] >> 16;
-+        codes.code0 = controlFlowCode[0];
-+        codes.code1 = controlFlowCode[1] & 0xFFFF;
-+        codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
-+        codes.code3 = controlFlowCode[2] >> 16;
++        codes.codes.code0 = controlFlowCode[0];
++        codes.codes.code1 = controlFlowCode[1] & 0xFFFF;
++        codes.codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        codes.codes.code3 = controlFlowCode[2] >> 16;
 
          for (auto& cfInstr : controlFlow)
          {
@@ -133,9 +120,9 @@ index 698a418..1a4d66a 100644
 -                code0 = instructionCode[0];
 -                code1 = instructionCode[1];
 -                code2 = instructionCode[2];
-+                raw.code0 = instructionCode[0];
-+                raw.code1 = instructionCode[1];
-+                raw.code2 = instructionCode[2];
++                raw.raw.code0 = instructionCode[0];
++                raw.raw.code1 = instructionCode[1];
++                raw.raw.code2 = instructionCode[2];
 
                  if ((sequence & 0x1) != 0)
                  {
