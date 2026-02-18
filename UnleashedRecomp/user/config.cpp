@@ -502,32 +502,30 @@ void Config::Save()
     if (!std::filesystem::exists(userPath))
         std::filesystem::create_directory(userPath);
 
-    std::string result;
-    std::string section;
-
-    for (auto def : g_configDefinitions)
-    {
-        if (def->IsHidden())
-            continue;
-
-        auto isFirstSection = section.empty();
-        auto isDefWithSection = section != def->GetSection();
-        auto tomlDef = def->GetDefinition(isDefWithSection);
-
-        section = def->GetSection();
-
-        // Don't output prefix space for first section.
-        if (!isFirstSection && isDefWithSection)
-            result += '\n';
-
-        result += tomlDef + '\n';
-    }
-
     std::ofstream out(GetConfigPath());
 
     if (out.is_open())
     {
-        out << result;
+        std::string section;
+
+        for (auto def : g_configDefinitions)
+        {
+            if (def->IsHidden())
+                continue;
+
+            auto isFirstSection = section.empty();
+            auto isDefWithSection = section != def->GetSection();
+            auto tomlDef = def->GetDefinition(isDefWithSection);
+
+            section = def->GetSection();
+
+            // Don't output prefix space for first section.
+            if (!isFirstSection && isDefWithSection)
+                out << '\n';
+
+            out << tomlDef << '\n';
+        }
+
         out.close();
     }
     else

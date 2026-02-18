@@ -1,3 +1,5 @@
+#include <cassert>
+
 // CONFIG_DEFINE
 template<typename T, bool isHidden>
 ConfigDef<T, isHidden>::ConfigDef(std::string section, std::string name, T defaultValue) : Section(std::move(section)), Name(std::move(name)), DefaultValue(defaultValue)
