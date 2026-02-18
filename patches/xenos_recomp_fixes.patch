@@ -2,20 +2,22 @@ diff --git a/XenosRecomp/CMakeLists.txt b/XenosRecomp/CMakeLists.txt
 index e505a5e..0574517 100644
 --- a/XenosRecomp/CMakeLists.txt
 +++ b/XenosRecomp/CMakeLists.txt
-@@ -28,7 +28,7 @@ target_include_directories(XenosRecomp PRIVATE ${SMOLV_SOURCE_DIR})
+@@ -26,8 +26,8 @@ target_include_directories(XenosRecomp PRIVATE ${SMOLV_SOURCE_DIR})
 
  target_precompile_headers(XenosRecomp PRIVATE pch.h)
 
 -if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+-    target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -fms-extensions)
 +if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-     target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -fms-extensions)
++    target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -Wno-pointer-arith -fms-extensions)
 
      include(CheckCXXSymbolExists)
+     check_cxx_symbol_exists(_LIBCPP_VERSION version LIBCPP)
 diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
 index 698a418..79c02f1 100644
 --- a/XenosRecomp/shader_recompiler.cpp
 +++ b/XenosRecomp/shader_recompiler.cpp
-@@ -1308,15 +1308,15 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1307,15 +1307,15 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
              {
                  VertexElement vertexElement;
                  uint32_t value;
@@ -36,7 +38,7 @@ index 698a418..79c02f1 100644
              {
                  usageType = "uint4";
              }
-@@ -1326,17 +1326,17 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1325,17 +1325,17 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
 
              for (auto& usageLocation : USAGE_LOCATIONS)
              {
@@ -58,7 +60,7 @@ index 698a418..79c02f1 100644
          }
 
      #ifdef UNLEASHED_RECOMP
-@@ -1403,13 +1403,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1409,13 +1409,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
                          int8_t y;
                          int8_t z;
                          int8_t w;
@@ -74,7 +76,7 @@ index 698a418..79c02f1 100644
              }
              definitions += 2;
              definitions += definition->count;
-@@ -1502,7 +1502,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1505,7 +1505,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
              uint32_t code1;
              uint32_t code2;
              uint32_t code3;
@@ -83,7 +85,7 @@ index 698a418..79c02f1 100644
      };
 
      auto controlFlowCode = code;
-@@ -1512,10 +1512,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1514,10 +1514,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
 
      while (instrAddress < instrSize)
      {
@@ -98,7 +100,7 @@ index 698a418..79c02f1 100644
 
          for (auto& cfInstr : controlFlow)
          {
-@@ -1579,10 +1579,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1580,10 +1580,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
 
      while (instrAddress < instrSize)
      {
@@ -113,7 +115,14 @@ index 698a418..79c02f1 100644
 
          for (auto& cfInstr : controlFlow)
          {
-@@ -1733,12 +1733,12 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1726,19 +1726,19 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+                 union
+                 {
+                     VertexFetchInstruction vertexFetch;
+                     TextureFetchInstruction textureFetch;
+                     AluInstruction alu;
+                     struct
+                     {
                          uint32_t code0;
                          uint32_t code1;
                          uint32_t code2;
