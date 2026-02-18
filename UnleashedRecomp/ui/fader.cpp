@@ -57,7 +57,7 @@ static void DoFade(bool isFadeIn, float duration, std::function<void()> endCallb
     g_isFadeIn = isFadeIn;
     g_startTime = ImGui::GetTime();
     g_duration = duration;
-    g_endCallback = endCallback;
+    g_endCallback = std::move(endCallback);
     g_endCallbackDelay = endCallbackDelay;
 
     Fader::s_isVisible = true;
@@ -70,10 +70,10 @@ void Fader::SetFadeColour(ImU32 colour)
 
 void Fader::FadeIn(float duration, std::function<void()> endCallback, float endCallbackDelay)
 {
-    DoFade(true, duration, endCallback, endCallbackDelay);
+    DoFade(true, duration, std::move(endCallback), endCallbackDelay);
 }
 
 void Fader::FadeOut(float duration, std::function<void()> endCallback, float endCallbackDelay)
 {
-    DoFade(false, duration, endCallback, endCallbackDelay);
+    DoFade(false, duration, std::move(endCallback), endCallbackDelay);
 }
