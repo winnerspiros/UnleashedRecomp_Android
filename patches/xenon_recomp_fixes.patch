@@ -74,6 +74,24 @@ index fa91527..7d14fdf 100644
      config.Load(configFilePath);
 
      std::vector<uint8_t> file;
+@@ -2366,7 +2367,7 @@ bool Recompiler::Recompile(
+     auto printMidAsmHook = [&]()
+         {
+             bool returnsBool = midAsmHook->second.returnOnFalse || midAsmHook->second.returnOnTrue ||
+-                midAsmHook->second.jumpAddressOnFalse != NULL || midAsmHook->second.jumpAddressOnTrue != NULL;
++                midAsmHook->second.jumpAddressOnFalse != 0 || midAsmHook->second.jumpAddressOnTrue != 0;
+
+             print("\t");
+             if (returnsBool)
+@@ -2653,7 +2654,7 @@ void Recompiler::SaveCurrentOutData(const std::string_view& name)
+             {
+                 fseek(f, 0, SEEK_SET);
+                 temp.resize(fileSize);
+-                fread(temp.data(), 1, fileSize, f);
++                (void)fread(temp.data(), 1, fileSize, f);
+
+                 shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
+             }
 diff --git a/XenonUtils/CMakeLists.txt b/XenonUtils/CMakeLists.txt
 index 1807323..4354c8e 100644
 --- a/XenonUtils/CMakeLists.txt

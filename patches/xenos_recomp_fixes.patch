@@ -130,3 +130,16 @@ index 698a418..79c02f1 100644
 
                  if ((sequence & 0x1) != 0)
                  {
+diff --git a/XenosRecomp/main.cpp b/XenosRecomp/main.cpp
+index 123456..789012 100644
+--- a/XenosRecomp/main.cpp
++++ b/XenosRecomp/main.cpp
+@@ -11,7 +11,7 @@ static std::unique_ptr<uint8_t[]> readAllBytes(const char* filePath, size_t& fil
+     fileSize = ftell(file);
+     fseek(file, 0, SEEK_SET);
+     auto data = std::make_unique<uint8_t[]>(fileSize);
+-    fread(data.get(), 1, fileSize, file);
++    (void)fread(data.get(), 1, fileSize, file);
+     fclose(file);
+     return data;
+ }
