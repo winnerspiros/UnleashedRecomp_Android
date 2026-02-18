@@ -128,3 +128,48 @@ index 3e224b4..4b78abf 100644
              else if ((operand->flags & PPC_OPERAND_CR) == 0
                  || (dialect & PPC_OPCODE_PPC) == 0)
                  stream = stream + sprintf(stream, "%ld", value);
+diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
+index 7d14fdf..c30fc9c 100644
+--- a/XenonRecomp/recompiler.cpp
++++ b/XenonRecomp/recompiler.cpp
+@@ -490,7 +490,7 @@ bool Recompiler::Recompile(
+
+                 if (midAsmHook->second.returnOnTrue)
+                     println("\t\treturn;");
+-                else if (midAsmHook->second.jumpAddressOnTrue != NULL)
++                else if (midAsmHook->second.jumpAddressOnTrue != 0)
+                     println("\t\tgoto loc_{:X};", midAsmHook->second.jumpAddressOnTrue);
+
+                 println("\t}}");
+@@ -499,7 +499,7 @@ bool Recompiler::Recompile(
+
+                 if (midAsmHook->second.returnOnFalse)
+                     println("\t\treturn;");
+-                else if (midAsmHook->second.jumpAddressOnFalse != NULL)
++                else if (midAsmHook->second.jumpAddressOnFalse != 0)
+                     println("\t\tgoto loc_{:X};", midAsmHook->second.jumpAddressOnFalse);
+
+                 println("\t}}");
+@@ -510,7 +510,7 @@ bool Recompiler::Recompile(
+
+                 if (midAsmHook->second.ret)
+                     println("\treturn;");
+-                else if (midAsmHook->second.jumpAddress != NULL)
++                else if (midAsmHook->second.jumpAddress != 0)
+                     println("\tgoto loc_{:X};", midAsmHook->second.jumpAddress);
+             }
+         };
+@@ -2651,9 +2651,10 @@ void Recompiler::SaveCurrentOutData(const std::string_view& name)
+             {
+                 fseek(f, 0, SEEK_SET);
+                 temp.resize(fileSize);
+-                fread(temp.data(), 1, fileSize, f);
+-
+-                shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
++                if (fread(temp.data(), 1, fileSize, f) == fileSize)
++                {
++                    shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
++                }
+             }
+             fclose(f);
+         }
