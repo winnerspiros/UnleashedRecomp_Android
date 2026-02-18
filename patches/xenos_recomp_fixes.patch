@@ -139,7 +139,7 @@ index 123456..789012 100644
      fseek(file, 0, SEEK_SET);
      auto data = std::make_unique<uint8_t[]>(fileSize);
 -    fread(data.get(), 1, fileSize, file);
-+    (void)fread(data.get(), 1, fileSize, file);
++    if (fread(data.get(), 1, fileSize, file) != fileSize) {}
      fclose(file);
      return data;
  }

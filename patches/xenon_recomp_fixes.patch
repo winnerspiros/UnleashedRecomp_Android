@@ -88,7 +88,7 @@ index fa91527..7d14fdf 100644
                  fseek(f, 0, SEEK_SET);
                  temp.resize(fileSize);
 -                fread(temp.data(), 1, fileSize, f);
-+                (void)fread(temp.data(), 1, fileSize, f);
++                if (fread(temp.data(), 1, fileSize, f) != fileSize) {}
 
                  shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
              }
