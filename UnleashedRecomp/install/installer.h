@@ -2,6 +2,8 @@
 
 #include <span>
 #include <set>
+#include <list>
+#include <chrono>
 
 #include "virtual_file_system.h"
 #include <xex_patcher.h>

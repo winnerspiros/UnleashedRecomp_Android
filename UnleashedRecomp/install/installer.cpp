@@ -15,6 +15,12 @@
 #include "hashes/spagonia.h"
 #include "hashes/update.h"
 
+#include <thread>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <fmt/format.h>
+
 static const std::string GameDirectory = "game";
 static const std::string DLCDirectory = "dlc";
 static const std::string PatchedDirectory = "patched";
@@ -117,7 +123,7 @@ static bool checkFile(const FilePair &pair, const uint64_t *fileHashes, const st
         {
             try
             {
-                fileData.resize(fileSize);
+                fileData.ensure(fileSize);
             }
             catch (const std::bad_alloc&)
             {
