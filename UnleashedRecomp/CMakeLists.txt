@@ -1,23 +1,5 @@
 project("UnleashedRecomp")
 
-# Apply security patch to SWA (hhStringHolder.inl)
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../patches/hh_string_holder_fix.patch")
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} apply --check "${CMAKE_CURRENT_SOURCE_DIR}/../patches/hh_string_holder_fix.patch"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/api"
-        RESULT_VARIABLE PATCH_CHECK_RESULT
-        ERROR_QUIET
-    )
-    if(PATCH_CHECK_RESULT EQUAL 0)
-        message(STATUS "Applying security patch to SWA...")
-        execute_process(
-            COMMAND ${GIT_EXECUTABLE} apply "${CMAKE_CURRENT_SOURCE_DIR}/../patches/hh_string_holder_fix.patch"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/api"
-        )
-    endif()
-endif()
-
 if (ANDROID AND CMAKE_CROSSCOMPILING)
     set(DXC_BIN_ROOT "${CMAKE_SOURCE_DIR}/tools/XenosRecomp/thirdparty/dxc-bin")
 
@@ -295,6 +277,7 @@ target_link_libraries(UnleashedRecomp PRIVATE
 
 target_include_directories(UnleashedRecomp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    "${CMAKE_CURRENT_SOURCE_DIR}/api_overrides"
     "${CMAKE_CURRENT_SOURCE_DIR}/api"
     ${UNLEASHED_RECOMP_THIRDPARTY_INCLUDES}
 )
