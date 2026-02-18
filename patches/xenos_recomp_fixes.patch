@@ -1,113 +1,7 @@
-diff --git a/XenosRecomp/CMakeLists.txt b/XenosRecomp/CMakeLists.txt
-index e505a5e..0574517 100644
---- a/XenosRecomp/CMakeLists.txt
-+++ b/XenosRecomp/CMakeLists.txt
-@@ -28,7 +28,7 @@ target_include_directories(XenosRecomp PRIVATE ${SMOLV_SOURCE_DIR})
-
- target_precompile_headers(XenosRecomp PRIVATE pch.h)
-
--if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-     target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -fms-extensions)
-
-     include(CheckCXXSymbolExists)
-diff --git a/XenosRecomp/main.cpp b/XenosRecomp/main.cpp
-index d015145..5857240 100644
---- a/XenosRecomp/main.cpp
-+++ b/XenosRecomp/main.cpp
-@@ -9,7 +9,10 @@ static std::unique_ptr<uint8_t[]> readAllBytes(const char* filePath, size_t& fil
-     fileSize = ftell(file);
-     fseek(file, 0, SEEK_SET);
-     auto data = std::make_unique<uint8_t[]>(fileSize);
--    fread(data.get(), 1, fileSize, file);
-+    if (fread(data.get(), 1, fileSize, file) != fileSize)
-+    {
-+        // Handle error?
-+    }
-     fclose(file);
-     return data;
- }
 diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
-index 698a418..b88e785 100644
+index 698a418..ecf2fc4 100644
 --- a/XenosRecomp/shader_recompiler.cpp
 +++ b/XenosRecomp/shader_recompiler.cpp
-@@ -1308,15 +1308,15 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-             {
-                 VertexElement vertexElement;
-                 uint32_t value;
--            };
-+            } u;
-
--            value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + i];
-+            u.value = vertexShader->vertexElementsAndInterpolators[vertexShader->field18 + i];
-
--            const char* usageType = USAGE_TYPES[uint32_t(vertexElement.usage)];
-+            const char* usageType = USAGE_TYPES[uint32_t(u.vertexElement.usage)];
-
-         #ifdef UNLEASHED_RECOMP
--            if ((vertexElement.usage == DeclUsage::TexCoord && vertexElement.usageIndex == 2 && isMetaInstancer) ||
--                (vertexElement.usage == DeclUsage::Position && vertexElement.usageIndex == 1))
-+            if ((u.vertexElement.usage == DeclUsage::TexCoord && u.vertexElement.usageIndex == 2 && isMetaInstancer) ||
-+                (u.vertexElement.usage == DeclUsage::Position && u.vertexElement.usageIndex == 1))
-             {
-                 usageType = "uint4";
-             }
-@@ -1326,17 +1326,17 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-
-             for (auto& usageLocation : USAGE_LOCATIONS)
-             {
--                if (usageLocation.usage == vertexElement.usage && usageLocation.usageIndex == vertexElement.usageIndex)
-+                if (usageLocation.usage == u.vertexElement.usage && usageLocation.usageIndex == u.vertexElement.usageIndex)
-                 {
-                     print("[[vk::location({})]] ", usageLocation.location);
-                     break;
-                 }
-             }
-
--            println("in {0} i{1}{2} : {3}{2},", usageType, USAGE_VARIABLES[uint32_t(vertexElement.usage)],
--                uint32_t(vertexElement.usageIndex), USAGE_SEMANTICS[uint32_t(vertexElement.usage)]);
-+            println("in {0} i{1}{2} : {3}{2},", usageType, USAGE_VARIABLES[uint32_t(u.vertexElement.usage)],
-+                uint32_t(u.vertexElement.usageIndex), USAGE_SEMANTICS[uint32_t(u.vertexElement.usage)]);
-
--            vertexElements.emplace(uint32_t(vertexElement.address), vertexElement);
-+            vertexElements.emplace(uint32_t(u.vertexElement.address), u.vertexElement);
-         }
-
-     #ifdef UNLEASHED_RECOMP
-@@ -1371,7 +1371,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-     }
- #endif
-
--    if (shaderContainer->definitionTableOffset != NULL)
-+    if (shaderContainer->definitionTableOffset != 0)
-     {
-         auto definitionTable = reinterpret_cast<const DefinitionTable*>(shaderData + shaderContainer->definitionTableOffset);
-         auto definitions = definitionTable->definitions;
-@@ -1403,13 +1403,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-                         int8_t y;
-                         int8_t z;
-                         int8_t w;
--                    };
-+                    } s;
-                 };
-
-                 value = definition->values[i].get();
-
-                 println("\tint4 i{} = int4({}, {}, {}, {});",
--                    (definition->registerIndex - 8992) / 4 + i, x, y, z, w);
-+                    (definition->registerIndex - 8992) / 4 + i, s.x, s.y, s.z, s.w);
-             }
-             definitions += 2;
-             definitions += definition->count;
-@@ -1502,7 +1502,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-             uint32_t code1;
-             uint32_t code2;
-             uint32_t code3;
--        };
-+        } codes;
-     };
-
-     auto controlFlowCode = code;
 @@ -1512,10 +1512,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
 
      while (instrAddress < instrSize)
@@ -123,20 +17,18 @@ index 698a418..b88e785 100644
 
          for (auto& cfInstr : controlFlow)
          {
-@@ -1733,12 +1733,12 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-                         uint32_t code0;
-                         uint32_t code1;
-                         uint32_t code2;
--                    };
-+                    } raw;
-                 };
+@@ -1579,10 +1579,10 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
 
--                code0 = instructionCode[0];
--                code1 = instructionCode[1];
--                code2 = instructionCode[2];
-+                raw.code0 = instructionCode[0];
-+                raw.code1 = instructionCode[1];
-+                raw.code2 = instructionCode[2];
+     while (instrAddress < instrSize)
+     {
+-        code0 = controlFlowCode[0];
+-        code1 = controlFlowCode[1] & 0xFFFF;
+-        code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
+-        code3 = controlFlowCode[2] >> 16;
++        codes.code0 = controlFlowCode[0];
++        codes.code1 = controlFlowCode[1] & 0xFFFF;
++        codes.code2 = (controlFlowCode[1] >> 16) | (controlFlowCode[2] << 16);
++        codes.code3 = controlFlowCode[2] >> 16;
 
-                 if ((sequence & 0x1) != 0)
-                 {
+         for (auto& cfInstr : controlFlow)
+         {

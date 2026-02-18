@@ -1,138 +1,17 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b89407f..53fa2af 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -20,8 +20,10 @@ set(XENONRECOMP_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/XenonRecomp)
-
- project ("XenonRecomp-ALL")
-
--add_subdirectory(${XENONANALYSE_ROOT})
--add_subdirectory(${XENONRECOMP_ROOT})
-+if (NOT ANDROID)
-+    add_subdirectory(${XENONANALYSE_ROOT})
-+    add_subdirectory(${XENONRECOMP_ROOT})
-+endif()
- add_subdirectory(${XENONUTILS_ROOT})
-
- # Only tests if this is the top level project
-diff --git a/XenonAnalyse/function.cpp b/XenonAnalyse/function.cpp
-index 34add40..d7f919a 100644
---- a/XenonAnalyse/function.cpp
-+++ b/XenonAnalyse/function.cpp
-@@ -103,14 +103,21 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
-             blockStack.pop_back();
-
-             // TODO: Handle absolute branches?
--            assert(!PPC_BA(instruction));
--            const size_t branchDest = addr + PPC_BD(instruction);
-+            size_t branchDest;
-+            if (PPC_BA(instruction))
-+            {
-+                branchDest = (size_t)(uint32_t)PPC_BD(instruction);
-+            }
-+            else
-+            {
-+                branchDest = addr + PPC_BD(instruction);
-+            }
-
-             // true/false paths
-             // left block: false case
-             // right block: true case
-             const size_t lBase = (addr - base) + 4;
--            const size_t rBase = (addr + PPC_BD(instruction)) - base;
-+            const size_t rBase = branchDest - base;
-
-             // these will be -1 if it's our first time seeing these blocks
-             auto lBlock = fn.SearchBlock(base + lBase);
-@@ -145,8 +152,15 @@ Function Function::Analyze(const void* code, size_t size, size_t base)
-
-                 if (op == PPC_OP_B)
-                 {
--                    assert(!PPC_BA(instruction));
--                    const size_t branchDest = addr + PPC_BI(instruction);
-+                    size_t branchDest;
-+                    if (PPC_BA(instruction))
-+                    {
-+                        branchDest = (size_t)(uint32_t)PPC_BI(instruction);
-+                    }
-+                    else
-+                    {
-+                        branchDest = addr + PPC_BI(instruction);
-+                    }
-
-                     const size_t branchBase = branchDest - base;
-                     const size_t branchBlock = fn.SearchBlock(branchDest);
 diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
-index fa91527..7d14fdf 100644
+index fa91527..2ccea2e 100644
 --- a/XenonRecomp/recompiler.cpp
 +++ b/XenonRecomp/recompiler.cpp
-@@ -12,6 +12,7 @@ static uint64_t ComputeMask(uint32_t mstart, uint32_t mstop)
-
- bool Recompiler::LoadConfig(const std::string_view& configFilePath)
- {
-+    fmt::println("Loading config from: {}", configFilePath);
-     config.Load(configFilePath);
-
-     std::vector<uint8_t> file;
-diff --git a/XenonUtils/CMakeLists.txt b/XenonUtils/CMakeLists.txt
-index 1807323..4354c8e 100644
---- a/XenonUtils/CMakeLists.txt
-+++ b/XenonUtils/CMakeLists.txt
-@@ -30,3 +30,7 @@ target_link_libraries(XenonUtils
-     PUBLIC
-         disasm
- )
-+
-+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-+    target_compile_options(XenonUtils PRIVATE -fms-extensions)
-+endif()
-diff --git a/XenonUtils/xbox.h b/XenonUtils/xbox.h
-index 0361b0f..a8db71d 100644
---- a/XenonUtils/xbox.h
-+++ b/XenonUtils/xbox.h
-@@ -247,7 +247,7 @@ typedef struct _XXOVERLAPPED {
+@@ -438,7 +438,7 @@ bool Recompiler::Recompile(
+     auto printMidAsmHook = [&]()
          {
-             be<uint32_t> Error;
-             be<uint32_t> Length;
--        };
-+        } _ErrorLength;
+             bool returnsBool = midAsmHook->second.returnOnFalse || midAsmHook->second.returnOnTrue ||
+-                midAsmHook->second.jumpAddressOnFalse != NULL || midAsmHook->second.jumpAddressOnTrue != NULL;
++                midAsmHook->second.jumpAddressOnFalse != 0 || midAsmHook->second.jumpAddressOnTrue != 0;
 
-         struct
-         {
-diff --git a/XenonUtils/xdbf.h b/XenonUtils/xdbf.h
-index 347ac2c..b9e5b87 100644
---- a/XenonUtils/xdbf.h
-+++ b/XenonUtils/xdbf.h
-@@ -132,7 +132,7 @@ union XDBFTitleID
-     {
-         be<uint16_t> u16;
-         char u8[0x02];
--    };
-+    } AsU16;
-
-     be<uint32_t> u32;
- };
-diff --git a/thirdparty/disasm/ppc-dis.c b/thirdparty/disasm/ppc-dis.c
-index 3e224b4..4b78abf 100644
---- a/thirdparty/disasm/ppc-dis.c
-+++ b/thirdparty/disasm/ppc-dis.c
-@@ -5765,9 +5765,9 @@ again:
-             else if ((operand->flags & PPC_OPERAND_VR) != 0)
-                 stream = stream + sprintf(stream, "v%ld", value);
-             else if ((operand->flags & PPC_OPERAND_RELATIVE) != 0)
--                stream = stream + sprintf(stream, "0x%llx", memaddr + value);
-+                stream = stream + sprintf(stream, "0x%llx", (unsigned long long)(memaddr + value));
-             else if ((operand->flags & PPC_OPERAND_ABSOLUTE) != 0)
--                stream = stream + sprintf(stream, "0x%llx", (bfd_vma)value & 0xffffffff);
-+                stream = stream + sprintf(stream, "0x%llx", (unsigned long long)((bfd_vma)value & 0xffffffff));
-             else if ((operand->flags & PPC_OPERAND_CR) == 0
-                 || (dialect & PPC_OPCODE_PPC) == 0)
-                 stream = stream + sprintf(stream, "%ld", value);
-diff --git a/XenonRecomp/recompiler.cpp b/XenonRecomp/recompiler.cpp
-index 7d14fdf..c30fc9c 100644
---- a/XenonRecomp/recompiler.cpp
-+++ b/XenonRecomp/recompiler.cpp
-@@ -490,7 +490,7 @@ bool Recompiler::Recompile(
+             print("\t");
+             if (returnsBool)
+@@ -489,7 +489,7 @@ bool Recompiler::Recompile(
 
                  if (midAsmHook->second.returnOnTrue)
                      println("\t\treturn;");
@@ -141,7 +20,7 @@ index 7d14fdf..c30fc9c 100644
                      println("\t\tgoto loc_{:X};", midAsmHook->second.jumpAddressOnTrue);
 
                  println("\t}}");
-@@ -499,7 +499,7 @@ bool Recompiler::Recompile(
+@@ -498,7 +498,7 @@ bool Recompiler::Recompile(
 
                  if (midAsmHook->second.returnOnFalse)
                      println("\t\treturn;");
@@ -150,7 +29,7 @@ index 7d14fdf..c30fc9c 100644
                      println("\t\tgoto loc_{:X};", midAsmHook->second.jumpAddressOnFalse);
 
                  println("\t}}");
-@@ -510,7 +510,7 @@ bool Recompiler::Recompile(
+@@ -509,7 +509,7 @@ bool Recompiler::Recompile(
 
                  if (midAsmHook->second.ret)
                      println("\treturn;");
@@ -159,17 +38,27 @@ index 7d14fdf..c30fc9c 100644
                      println("\tgoto loc_{:X};", midAsmHook->second.jumpAddress);
              }
          };
-@@ -2651,9 +2651,10 @@ void Recompiler::SaveCurrentOutData(const std::string_view& name)
+@@ -2314,7 +2314,7 @@ bool Recompiler::Recompile(const Function& fn)
+         if (midAsmHook != config.midAsmHooks.end())
+         {
+             if (midAsmHook->second.returnOnFalse || midAsmHook->second.returnOnTrue ||
+-                midAsmHook->second.jumpAddressOnFalse != NULL || midAsmHook->second.jumpAddressOnTrue != NULL)
++                midAsmHook->second.jumpAddressOnFalse != 0 || midAsmHook->second.jumpAddressOnTrue != 0)
              {
-                 fseek(f, 0, SEEK_SET);
-                 temp.resize(fileSize);
--                fread(temp.data(), 1, fileSize, f);
--
--                shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
-+                if (fread(temp.data(), 1, fileSize, f) == fileSize)
-+                {
-+                    shouldWrite = !XXH128_isEqual(XXH3_128bits(temp.data(), temp.size()), XXH3_128bits(out.data(), out.size()));
-+                }
+                 print("extern bool ");
              }
-             fclose(f);
+@@ -2361,11 +2361,11 @@ bool Recompiler::Recompile(const Function& fn)
+
+             println(");\n");
+
+-            if (midAsmHook->second.jumpAddress != NULL)
++            if (midAsmHook->second.jumpAddress != 0)
+                 labels.emplace(midAsmHook->second.jumpAddress);
+-            if (midAsmHook->second.jumpAddressOnTrue != NULL)
++            if (midAsmHook->second.jumpAddressOnTrue != 0)
+                 labels.emplace(midAsmHook->second.jumpAddressOnTrue);
+-            if (midAsmHook->second.jumpAddressOnFalse != NULL)
++            if (midAsmHook->second.jumpAddressOnFalse != 0)
+                 labels.emplace(midAsmHook->second.jumpAddressOnFalse);
          }
+     }
