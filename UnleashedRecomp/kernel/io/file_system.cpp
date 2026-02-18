@@ -8,6 +8,7 @@
 #include <user/config.h>
 #include <stdafx.h>
 
+#ifndef UNIT_TEST_FILESYSTEM
 struct FileHandle : KernelObject
 {
     std::fstream stream;
@@ -360,6 +361,7 @@ uint32_t XWriteFile(FileHandle* hFile, const void* lpBuffer, uint32_t nNumberOfB
 
     return TRUE;
 }
+#endif
 
 std::filesystem::path FileSystem::ResolvePath(const std::string_view& path, bool checkForMods)
 {
@@ -425,6 +427,7 @@ std::filesystem::path FileSystem::ResolvePath(const std::string_view& path, bool
     return std::u8string_view((const char8_t*)builtPath.c_str());
 }
 
+#ifndef UNIT_TEST_FILESYSTEM
 GUEST_FUNCTION_HOOK(sub_82BD4668, XCreateFileA);
 GUEST_FUNCTION_HOOK(sub_82BD4600, XGetFileSizeA);
 GUEST_FUNCTION_HOOK(sub_82BD5608, XGetFileSizeExA);
@@ -437,3 +440,4 @@ GUEST_FUNCTION_HOOK(sub_831CDF40, XReadFileEx);
 GUEST_FUNCTION_HOOK(sub_831CD6E8, XGetFileAttributesA);
 GUEST_FUNCTION_HOOK(sub_831CE3F8, XCreateFileA);
 GUEST_FUNCTION_HOOK(sub_82BD4860, XWriteFile);
+#endif
