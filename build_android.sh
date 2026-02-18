@@ -62,17 +62,17 @@ else
 fi
 cd ../..
 
-# Apply Hedgehog String Holder Patch
-echo "Applying Hedgehog String Holder patch..."
-cd UnleashedRecomp/api
-if ! grep -q "std::memcpy" Hedgehog/Base/Type/detail/hhStringHolder.inl; then
+# Apply XenosRecomp Patch
+echo "Applying XenosRecomp fixes..."
+cd tools/XenosRecomp
+if ! grep -q "raw.code0" XenosRecomp/shader_recompiler.cpp; then
     echo "Applying patch via git apply..."
-    if ! git apply ../../patches/hh_string_holder_fix.patch; then
+    if ! git apply ../../patches/xenos_recomp_fixes.patch; then
         echo "git apply failed, attempting to use patch..."
-        patch -p1 < ../../patches/hh_string_holder_fix.patch
+        patch -p1 < ../../patches/xenos_recomp_fixes.patch
     fi
 else
-    echo "Hedgehog String Holder patch already applied."
+    echo "XenosRecomp fixes already applied."
 fi
 cd ../..
 
