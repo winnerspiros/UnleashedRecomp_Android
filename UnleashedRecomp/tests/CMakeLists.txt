@@ -113,3 +113,18 @@ target_include_directories(benchmark_iso_parsing PRIVATE
 )
 
 target_compile_features(benchmark_iso_parsing PRIVATE cxx_std_20)
+
+# test_heap
+add_executable(test_heap test_heap.cpp)
+
+target_include_directories(test_heap PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/mock_env
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+)
+
+target_compile_features(test_heap PRIVATE cxx_std_20)
+
+target_link_libraries(test_heap PRIVATE Threads::Threads)
+
+add_test(NAME HeapTest COMMAND test_heap)

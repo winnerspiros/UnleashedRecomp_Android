@@ -89,7 +89,7 @@ uint32_t RtlReAllocateHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryP
 
 uint32_t RtlFreeHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryPointer)
 {
-    if (memoryPointer != NULL)
+    if (memoryPointer != 0)
         g_userHeap.Free(g_memory.Translate(memoryPointer));
 
     return true;
@@ -97,7 +97,7 @@ uint32_t RtlFreeHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryPointer
 
 uint32_t RtlSizeHeap(uint32_t heapHandle, uint32_t flags, uint32_t memoryPointer)
 {
-    if (memoryPointer != NULL)
+    if (memoryPointer != 0)
         return (uint32_t)g_userHeap.Size(g_memory.Translate(memoryPointer));
 
     return 0;
@@ -118,7 +118,7 @@ uint32_t XAllocMem(uint32_t size, uint32_t flags)
 
 void XFreeMem(uint32_t baseAddress, uint32_t flags)
 {
-    if (baseAddress != NULL)
+    if (baseAddress != 0)
         g_userHeap.Free(g_memory.Translate(baseAddress));
 }
 
