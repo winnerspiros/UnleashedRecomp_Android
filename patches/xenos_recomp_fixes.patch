@@ -1,8 +1,6 @@
-diff --git a/XenosRecomp/CMakeLists.txt b/XenosRecomp/CMakeLists.txt
-index e505a5e..0574517 100644
---- a/XenosRecomp/CMakeLists.txt
-+++ b/XenosRecomp/CMakeLists.txt
-@@ -28,7 +28,7 @@ target_include_directories(XenosRecomp PRIVATE ${SMOLV_SOURCE_DIR})
+--- a/XenosRecomp/CMakeLists.txt	2026-02-21 09:11:34.010202586 +0000
++++ b/XenosRecomp/CMakeLists.txt	2026-02-21 09:34:26.123007827 +0000
+@@ -28,7 +28,7 @@
 
  target_precompile_headers(XenosRecomp PRIVATE pch.h)
 
@@ -11,11 +9,9 @@ index e505a5e..0574517 100644
      target_compile_options(XenosRecomp PRIVATE -Wno-switch -Wno-unused-variable -Wno-null-arithmetic -fms-extensions)
 
      include(CheckCXXSymbolExists)
-diff --git a/XenosRecomp/main.cpp b/XenosRecomp/main.cpp
-index d015145..374ea11 100644
---- a/XenosRecomp/main.cpp
-+++ b/XenosRecomp/main.cpp
-@@ -9,7 +9,7 @@ static std::unique_ptr<uint8_t[]> readAllBytes(const char* filePath, size_t& fil
+--- a/XenosRecomp/main.cpp	2026-02-21 09:11:34.010202586 +0000
++++ b/XenosRecomp/main.cpp	2026-02-21 09:34:26.123007827 +0000
+@@ -9,7 +9,7 @@
      fileSize = ftell(file);
      fseek(file, 0, SEEK_SET);
      auto data = std::make_unique<uint8_t[]>(fileSize);
@@ -24,11 +20,9 @@ index d015145..374ea11 100644
      fclose(file);
      return data;
  }
-diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
-index 698a418..e283a94 100644
---- a/XenosRecomp/shader_recompiler.cpp
-+++ b/XenosRecomp/shader_recompiler.cpp
-@@ -1371,7 +1371,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+--- a/XenosRecomp/shader_recompiler.cpp	2026-02-21 09:11:34.014202586 +0000
++++ b/XenosRecomp/shader_recompiler.cpp	2026-02-21 09:34:01.523008104 +0000
+@@ -1371,7 +1371,7 @@
      }
  #endif
 
@@ -37,7 +31,7 @@ index 698a418..e283a94 100644
      {
          auto definitionTable = reinterpret_cast<const DefinitionTable*>(shaderData + shaderContainer->definitionTableOffset);
          auto definitions = definitionTable->definitions;
-@@ -1403,13 +1403,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1403,13 +1403,13 @@
                          int8_t y;
                          int8_t z;
                          int8_t w;
@@ -55,7 +49,7 @@ index 698a418..e283a94 100644
              }
              definitions += 2;
              definitions += definition->count;
-@@ -1502,8 +1502,8 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1502,8 +1502,8 @@
              uint32_t code1;
              uint32_t code2;
              uint32_t code3;
@@ -66,7 +60,7 @@ index 698a418..e283a94 100644
 
      auto controlFlowCode = code;
      uint32_t instrAddress = 0;
-@@ -1512,12 +1512,12 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1512,12 +1512,12 @@
 
      while (instrAddress < instrSize)
      {
@@ -84,7 +78,7 @@ index 698a418..e283a94 100644
          {
              uint32_t address = 0;
 
-@@ -1579,12 +1579,12 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1579,12 +1579,12 @@
 
      while (instrAddress < instrSize)
      {
@@ -102,7 +96,7 @@ index 698a418..e283a94 100644
          {
              if (!simpleControlFlow)
              {
-@@ -1733,23 +1733,23 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1733,23 +1733,23 @@
                          uint32_t code0;
                          uint32_t code1;
                          uint32_t code2;
@@ -134,7 +128,7 @@ index 698a418..e283a94 100644
                          {
                              specConstantsMask |= SPEC_CONSTANT_BICUBIC_GI_FILTER;
 
-@@ -1759,7 +1759,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1759,7 +1759,7 @@
                              out += '{';
 
                              ++indentation;
@@ -143,7 +137,7 @@ index 698a418..e283a94 100644
                              --indentation;
 
                              indent();
-@@ -1770,7 +1770,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1770,7 +1770,7 @@
                              out += '{';
 
                              ++indentation;
@@ -152,7 +146,7 @@ index 698a418..e283a94 100644
                              --indentation;
 
                              indent();
-@@ -1779,13 +1779,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
+@@ -1779,13 +1779,13 @@
                          else
                      #endif
                          {
