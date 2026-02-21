@@ -25,18 +25,9 @@ index d015145..374ea11 100644
      return data;
  }
 diff --git a/XenosRecomp/shader_recompiler.cpp b/XenosRecomp/shader_recompiler.cpp
-index 698a418..e283a94 100644
+index 698a418..047b0d5 100644
 --- a/XenosRecomp/shader_recompiler.cpp
 +++ b/XenosRecomp/shader_recompiler.cpp
-@@ -1371,7 +1371,7 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
-     }
- #endif
-
--    if (shaderContainer->definitionTableOffset != NULL)
-+    if (shaderContainer->definitionTableOffset != 0)
-     {
-         auto definitionTable = reinterpret_cast<const DefinitionTable*>(shaderData + shaderContainer->definitionTableOffset);
-         auto definitions = definitionTable->definitions;
 @@ -1403,13 +1403,13 @@ void ShaderRecompiler::recompile(const uint8_t* shaderData, const std::string_vi
                          int8_t y;
                          int8_t z;
