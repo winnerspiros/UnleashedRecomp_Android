@@ -143,3 +143,20 @@ target_include_directories(test_xex_security PRIVATE
 target_compile_features(test_xex_security PRIVATE cxx_std_20)
 
 add_test(NAME XexSecurityTest COMMAND test_xex_security)
+
+# test_xcontent_file_system
+add_executable(test_xcontent_file_system test_xcontent_file_system.cpp
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/install/xcontent_file_system.cpp
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils/memory_mapped_file.cpp
+)
+
+target_include_directories(test_xcontent_file_system PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
+    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
+)
+
+target_compile_features(test_xcontent_file_system PRIVATE cxx_std_20)
+
+add_test(NAME XContentFileSystemTest COMMAND test_xcontent_file_system)

@@ -218,9 +218,13 @@ size_t blockIndexToHashBlockOffset(uint64_t baseOffset, uint32_t blockIndex)
     return baseOffset + (blockNumber << 12);
 }
 
-const StfsHashEntry *hashEntryFromBlockIndex(const uint8_t *fileData, uint64_t baseOffset, uint64_t blockIndex)
+const StfsHashEntry *hashEntryFromBlockIndex(const uint8_t *fileData, size_t fileDataSize, uint64_t baseOffset, uint64_t blockIndex)
 {
     size_t hashOffset = blockIndexToHashBlockOffset(baseOffset, blockIndex);
+    if (hashOffset + sizeof(StfsHashTable) > fileDataSize)
+    {
+        return nullptr;
+    }
     const StfsHashTable *hashTable = (const StfsHashTable *)(&fileData[hashOffset]);
     return &hashTable->entries[blockIndex % StfsBlocksPerHashLevel[0]];
 }
@@ -343,7 +347,12 @@ XContentFileSystem::XContentFileSystem(const std::filesystem::path &contentPath)
                 entryCount++;
             }
 
-            const StfsHashEntry *hashEntry = hashEntryFromBlockIndex(rootMappedFileData, baseOffset, tableBlockIndex);
+            const StfsHashEntry *hashEntry = hashEntryFromBlockIndex(rootMappedFileData, rootMappedFile.size(), baseOffset, tableBlockIndex);
+            if (!hashEntry)
+            {
+                mappedFiles.clear();
+                return;
+            }
             tableBlockIndex = hashEntry->infoRaw & 0xFFFFFF;
             if (tableBlockIndex == StfsEndOfChain)
             {
@@ -549,7 +558,11 @@ bool XContentFileSystem::load(const std::string &path, uint8_t *fileData, size_t
 
                 memcpy(&fileData[fileDataOffset], &rootMappedFileData[blockOffset], blockSize);
 
-                const StfsHashEntry *hashEntry = hashEntryFromBlockIndex(rootMappedFileData, baseOffset, fileBlockIndex);
+                const StfsHashEntry *hashEntry = hashEntryFromBlockIndex(rootMappedFileData, rootMappedFile.size(), baseOffset, fileBlockIndex);
+                if (!hashEntry)
+                {
+                    return false;
+                }
                 fileBlockIndex = hashEntry->infoRaw & 0xFFFFFF;
                 fileDataOffset += blockSize;
                 remainingSize -= blockSize;

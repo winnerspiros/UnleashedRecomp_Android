@@ -4,6 +4,16 @@
 #include <bit>
 
 template<typename T>
+inline T ByteSwap(T value)
+{
+    if constexpr (sizeof(T) == 1) return value;
+    else if constexpr (sizeof(T) == 2) return (T)__builtin_bswap16((uint16_t)value);
+    else if constexpr (sizeof(T) == 4) return (T)__builtin_bswap32((uint32_t)value);
+    else if constexpr (sizeof(T) == 8) return (T)__builtin_bswap64((uint64_t)value);
+    return value;
+}
+
+template<typename T>
 struct be
 {
     T value;
@@ -13,11 +23,7 @@ struct be
 
     static T byteswap(T value)
     {
-        if constexpr (sizeof(T) == 1) return value;
-        else if constexpr (sizeof(T) == 2) return __builtin_bswap16((uint16_t)value);
-        else if constexpr (sizeof(T) == 4) return __builtin_bswap32((uint32_t)value);
-        else if constexpr (sizeof(T) == 8) return __builtin_bswap64((uint64_t)value);
-        return value;
+        return ByteSwap(value);
     }
 
     void set(T v) { value = byteswap(v); }
