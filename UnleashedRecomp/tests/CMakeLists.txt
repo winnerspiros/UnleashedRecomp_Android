@@ -143,3 +143,20 @@ target_include_directories(test_xex_security PRIVATE
 target_compile_features(test_xex_security PRIVATE cxx_std_20)
 
 add_test(NAME XexSecurityTest COMMAND test_xex_security)
+
+# test_paths
+add_executable(test_paths test_paths.cpp ${CMAKE_SOURCE_DIR}/UnleashedRecomp/user/paths.cpp)
+
+# Compile process_android.cpp if on UNIX (Linux/Android/macOS)
+if(UNIX)
+    target_sources(test_paths PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/os/android/process_android.cpp)
+endif()
+
+target_include_directories(test_paths PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+)
+
+target_compile_features(test_paths PRIVATE cxx_std_20)
+
+add_test(NAME PathsTest COMMAND test_paths)

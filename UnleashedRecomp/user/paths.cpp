@@ -1,6 +1,11 @@
 #include "paths.h"
 #include <os/process.h>
 
+#if defined(__linux__) || defined(__APPLE__)
+#include <unistd.h>
+#include <pwd.h>
+#endif
+
 #ifdef ANDROID
 #include <SDL.h>
 #endif
