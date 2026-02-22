@@ -143,3 +143,23 @@ target_include_directories(test_xex_security PRIVATE
 target_compile_features(test_xex_security PRIVATE cxx_std_20)
 
 add_test(NAME XexSecurityTest COMMAND test_xex_security)
+
+
+
+# test_locale
+add_executable(test_locale test_locale.cpp)
+
+target_include_directories(test_locale PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+)
+
+target_compile_features(test_locale PRIVATE cxx_std_20)
+
+target_link_libraries(test_locale PRIVATE
+    fmt::fmt
+    tomlplusplus::tomlplusplus
+    SDL2::SDL2-static
+)
+
+add_test(NAME LocaleTest COMMAND test_locale)
