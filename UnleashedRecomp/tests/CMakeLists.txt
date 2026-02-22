@@ -143,3 +143,16 @@ target_include_directories(test_xex_security PRIVATE
 target_compile_features(test_xex_security PRIVATE cxx_std_20)
 
 add_test(NAME XexSecurityTest COMMAND test_xex_security)
+
+# test_heap
+add_executable(test_heap test_heap.cpp)
+
+target_include_directories(test_heap PRIVATE
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/tests/mock
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}
+)
+
+target_compile_features(test_heap PRIVATE cxx_std_20)
+
+add_test(NAME HeapTest COMMAND test_heap)
