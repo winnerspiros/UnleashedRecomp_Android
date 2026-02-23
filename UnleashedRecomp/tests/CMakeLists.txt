@@ -168,3 +168,25 @@ target_compile_features(test_string_utils PRIVATE cxx_std_20)
 target_sources(test_string_utils PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/string_utils.cpp)
 
 add_test(NAME StringUtilsTest COMMAND test_string_utils)
+
+# test_imgui_math
+add_executable(test_imgui_math test_imgui_math.cpp)
+
+target_include_directories(test_imgui_math PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui
+)
+
+target_compile_features(test_imgui_math PRIVATE cxx_std_20)
+
+target_sources(test_imgui_math PRIVATE
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/imgui_math.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_tables.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
+)
+
+add_test(NAME ImGuiMathTest COMMAND test_imgui_math)

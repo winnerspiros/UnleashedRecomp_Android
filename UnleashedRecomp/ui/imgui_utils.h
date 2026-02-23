@@ -4,6 +4,7 @@
 #include <gpu/video.h>
 
 #include <functional>
+#include "imgui_math.h"
 #include "string_utils.h"
 
 #define PIXELS_TO_UV_COORDS(textureWidth, textureHeight, x, y, width, height) \
@@ -75,11 +76,6 @@ std::string RemoveAnnotationFromParagraphLine(const std::vector<TextSegment>& an
 ImVec2 MeasureCentredParagraph(const ImFont* font, float fontSize, float lineMargin, const std::vector<std::string>& lines);
 ImVec2 MeasureCentredParagraph(const ImFont* font, float fontSize, float maxWidth, float lineMargin, const char* text);
 void DrawRubyAnnotatedText(const ImFont* font, float fontSize, float maxWidth, const ImVec2& pos, float lineMargin, const char* text, std::function<void(const char*, ImVec2)> drawMethod, std::function<void(const char*, float, ImVec2)> annotationDrawMethod, bool isCentred = false, bool leadingSpace = false);
-float Lerp(float a, float b, float t);
-float Cubic(float a, float b, float t);
-float Hermite(float a, float b, float t);
-ImVec2 Lerp(const ImVec2& a, const ImVec2& b, float t);
-ImU32 ColourLerp(ImU32 c0, ImU32 c1, float t);
 void DrawScanlineBars(float height, float alpha = 1.0f, std::function<void()> drawContent = nullptr);
 void DrawVersionString(const ImFont* font, const ImU32 col = IM_COL32(255, 255, 255, 70));
 void DrawSelectionContainer(ImVec2 min, ImVec2 max, bool fadeTop = false);
