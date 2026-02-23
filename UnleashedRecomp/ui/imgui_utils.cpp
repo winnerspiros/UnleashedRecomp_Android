@@ -717,6 +717,10 @@ void DrawRubyAnnotatedText(const ImFont* font, float fontSize, float maxWidth, c
 
 
 
+
+    return ImGui::ColorConvertFloat4ToU32(result);
+}
+
 void DrawScanlineBars(float height, float alpha, std::function<void()> drawContent)
 {
     if (height < 1e-6f)
