@@ -283,7 +283,7 @@ target_link_libraries(UnleashedRecomp PRIVATE
     tomlplusplus::tomlplusplus
     UnleashedRecompLib
     xxHash::xxhash
-    $<$<BOOL:${CURL_FOUND}>:CURL::libcurl>
+    $<$<BOOL:${CURL_FOUND}>:$<$<BOOL:${CURL_FOUND}>:CURL::libcurl>>
     plume
     log
 )
