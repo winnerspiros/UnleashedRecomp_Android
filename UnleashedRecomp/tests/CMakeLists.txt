@@ -168,3 +168,18 @@ target_compile_features(test_string_utils PRIVATE cxx_std_20)
 target_sources(test_string_utils PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/string_utils.cpp)
 
 add_test(NAME StringUtilsTest COMMAND test_string_utils)
+
+# test_ini_file
+add_executable(test_ini_file test_ini_file.cpp)
+
+target_include_directories(test_ini_file PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
+)
+
+target_compile_features(test_ini_file PRIVATE cxx_std_20)
+
+target_link_libraries(test_ini_file PRIVATE xxHash::xxhash)
+
+add_test(NAME IniFileTest COMMAND test_ini_file)
