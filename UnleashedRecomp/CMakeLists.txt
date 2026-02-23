@@ -269,7 +269,7 @@ GenerateVersionSources(
 add_library(UnleashedRecomp SHARED ${UNLEASHED_RECOMP_CXX_SOURCES})
 set_target_properties(UnleashedRecomp PROPERTIES OUTPUT_NAME "main")
 
-find_package(CURL REQUIRED)
+find_package(CURL)
 
 target_link_libraries(UnleashedRecomp PRIVATE
     fmt::fmt
@@ -283,7 +283,7 @@ target_link_libraries(UnleashedRecomp PRIVATE
     tomlplusplus::tomlplusplus
     UnleashedRecompLib
     xxHash::xxhash
-    CURL::libcurl
+    $<$<BOOL:${CURL_FOUND}>:CURL::libcurl>
     plume
     log
 )
