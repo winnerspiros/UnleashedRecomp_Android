@@ -220,3 +220,22 @@ target_compile_features(test_heap PRIVATE cxx_std_20)
 target_link_libraries(test_heap PRIVATE Threads::Threads)
 
 add_test(NAME HeapTest COMMAND test_heap)
+
+# test_update_unit
+add_executable(test_update_unit test_update_unit.cpp)
+
+target_include_directories(test_update_unit PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/api
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/thirdparty/simde
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/thirdparty/fmt/include
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/thirdparty/xxHash
+    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
+)
+
+target_compile_features(test_update_unit PRIVATE cxx_std_20)
+target_link_libraries(test_update_unit PRIVATE Threads::Threads)
+
+add_test(NAME UpdateUnitTest COMMAND test_update_unit)
