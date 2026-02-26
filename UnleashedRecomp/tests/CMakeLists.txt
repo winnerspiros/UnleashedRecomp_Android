@@ -1,234 +1,127 @@
-add_executable(test_memory test_memory.cpp)
+cmake_minimum_required(VERSION 3.20)
+project(UnleashedRecompTests)
+
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+
+# Add C++ standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include directories
-target_include_directories(test_memory PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+include_directories(
+    ${PROJECT_ROOT}
+    ${PROJECT_ROOT}/UnleashedRecomp
+    ${PROJECT_ROOT}/UnleashedRecomp/tests
+    ${PROJECT_ROOT}/tools/XenonRecomp/XenonUtils
+    ${PROJECT_ROOT}/thirdparty/unordered_dense/include
+    ${PROJECT_ROOT}/tools/XenonRecomp/thirdparty/xxHash
+    ${PROJECT_ROOT}/thirdparty/SDL/include
+    ${PROJECT_ROOT}/thirdparty/fmt/include
+    ${PROJECT_ROOT}/thirdparty/tomlplusplus/include
+    ${PROJECT_ROOT}/thirdparty/imgui
 )
 
-# Set C++ standard
-target_compile_features(test_memory PRIVATE cxx_std_20)
-
+# test_memory
+add_executable(test_memory test_memory.cpp)
 add_test(NAME MemoryTest COMMAND test_memory)
 
 # test_config
 add_executable(test_config test_config.cpp)
-
-target_include_directories(test_config PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_config PRIVATE cxx_std_20)
-
-target_link_libraries(test_config PRIVATE
-    fmt::fmt
-    tomlplusplus::tomlplusplus
-    SDL2::SDL2-static
-)
-
+target_link_libraries(test_config PRIVATE fmt::fmt tomlplusplus::tomlplusplus SDL2::SDL2-static)
 add_test(NAME ConfigTest COMMAND test_config)
 
 # test_directory_file_system
 add_executable(test_directory_file_system test_directory_file_system.cpp)
-
-target_include_directories(test_directory_file_system PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_directory_file_system PRIVATE cxx_std_20)
-
 add_test(NAME DirectoryFileSystemTest COMMAND test_directory_file_system)
 
 # test_mutex
 add_executable(test_mutex test_mutex.cpp)
-
-target_include_directories(test_mutex PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_mutex PRIVATE cxx_std_20)
-
-# On Linux, we need to link against pthreads implicitly, usually covered by compiler or standard lib
-# But if threads are used, sometimes we need to link against Threads::Threads.
 find_package(Threads REQUIRED)
 target_link_libraries(test_mutex PRIVATE Threads::Threads)
-
 add_test(NAME MutexTest COMMAND test_mutex)
 
 # test_os_process
 add_executable(test_os_process test_os_process.cpp)
-
-# Compile process_android.cpp if on UNIX (Linux/Android/macOS)
 if(UNIX)
-    target_sources(test_os_process PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/os/android/process_android.cpp)
+    target_sources(test_os_process PRIVATE ${PROJECT_ROOT}/UnleashedRecomp/os/android/process_android.cpp)
 endif()
-
-target_include_directories(test_os_process PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_os_process PRIVATE cxx_std_20)
-
 add_test(NAME OSProcessTest COMMAND test_os_process)
+
 # test_text_wrap
 add_executable(test_text_wrap test_text_wrap.cpp)
-
 target_sources(test_text_wrap PRIVATE
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/text_wrap_utils.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_tables.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
+    ${PROJECT_ROOT}/UnleashedRecomp/ui/text_wrap_utils.cpp
+    ${PROJECT_ROOT}/thirdparty/imgui/imgui.cpp
+    ${PROJECT_ROOT}/thirdparty/imgui/imgui_draw.cpp
+    ${PROJECT_ROOT}/thirdparty/imgui/imgui_tables.cpp
+    ${PROJECT_ROOT}/thirdparty/imgui/imgui_widgets.cpp
+    ${PROJECT_ROOT}/thirdparty/imgui/imgui_demo.cpp
 )
-
-target_include_directories(test_text_wrap PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui
-)
-
-target_compile_features(test_text_wrap PRIVATE cxx_std_20)
-
-# ImGui might need SDL if configured so? ImGui configuration is in imconfig.h which is in imgui folder.
-# Let's assume default config.
-
 add_test(NAME TextWrapTest COMMAND test_text_wrap)
 
 # benchmark_iso_parsing
 add_executable(benchmark_iso_parsing benchmark_iso_parsing.cpp
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/install/iso_file_system.cpp
-    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils/memory_mapped_file.cpp
+    ${PROJECT_ROOT}/UnleashedRecomp/install/iso_file_system.cpp
+    ${PROJECT_ROOT}/tools/XenonRecomp/XenonUtils/memory_mapped_file.cpp
 )
-
-target_include_directories(benchmark_iso_parsing PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
-    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
-)
-
-target_compile_features(benchmark_iso_parsing PRIVATE cxx_std_20)
 
 # test_iso_file_system
 add_executable(test_iso_file_system test_iso_file_system.cpp
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/install/iso_file_system.cpp
-    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils/memory_mapped_file.cpp
+    ${PROJECT_ROOT}/UnleashedRecomp/install/iso_file_system.cpp
+    ${PROJECT_ROOT}/tools/XenonRecomp/XenonUtils/memory_mapped_file.cpp
 )
-
-target_include_directories(test_iso_file_system PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
-    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
-)
-
-target_compile_features(test_iso_file_system PRIVATE cxx_std_20)
-
 add_test(NAME ISOFileSystemTest COMMAND test_iso_file_system)
 
 # test_xex_security
 add_executable(test_xex_security test_xex_security.cpp)
-
-target_include_directories(test_xex_security PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp/tests/mock
-)
-
-target_compile_features(test_xex_security PRIVATE cxx_std_20)
-
+target_include_directories(test_xex_security PRIVATE ${PROJECT_ROOT}/UnleashedRecomp/tests/mock)
 add_test(NAME XexSecurityTest COMMAND test_xex_security)
 
 # benchmark_buffer_upload
 add_executable(benchmark_buffer_upload benchmark_buffer_upload.cpp)
 
-target_include_directories(benchmark_buffer_upload PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
-)
-
-target_compile_features(benchmark_buffer_upload PRIVATE cxx_std_20)
-
 # test_string_utils
 add_executable(test_string_utils test_string_utils.cpp)
-
-target_include_directories(test_string_utils PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_string_utils PRIVATE cxx_std_20)
-
-target_sources(test_string_utils PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/string_utils.cpp)
-
+target_sources(test_string_utils PRIVATE ${PROJECT_ROOT}/UnleashedRecomp/ui/string_utils.cpp)
 add_test(NAME StringUtilsTest COMMAND test_string_utils)
 
 # test_ruby_utils
 add_executable(test_ruby_utils test_ruby_utils.cpp)
-
-target_include_directories(test_ruby_utils PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_ruby_utils PRIVATE cxx_std_20)
-
-target_sources(test_ruby_utils PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/ui/ruby_utils.cpp)
-
+target_sources(test_ruby_utils PRIVATE ${PROJECT_ROOT}/UnleashedRecomp/ui/ruby_utils.cpp)
 add_test(NAME RubyUtilsTest COMMAND test_ruby_utils)
 
 # test_string_holder
 add_executable(test_string_holder test_string_holder.cpp)
-
-target_include_directories(test_string_holder PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-)
-
-target_compile_features(test_string_holder PRIVATE cxx_std_20)
-
 add_test(NAME StringHolderTest COMMAND test_string_holder)
 
 # benchmark_mod_loader_optimization
 add_executable(benchmark_mod_loader_optimization benchmark_mod_loader_optimization.cpp)
 
-target_include_directories(benchmark_mod_loader_optimization PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
-)
-
-target_compile_features(benchmark_mod_loader_optimization PRIVATE cxx_std_20)
-
 # test_heap
-add_executable(test_heap test_heap.cpp ${CMAKE_SOURCE_DIR}/thirdparty/o1heap/o1heap.c)
-
-target_include_directories(test_heap PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
-    ${CMAKE_SOURCE_DIR}/thirdparty/o1heap
-)
-
-target_compile_features(test_heap PRIVATE cxx_std_20)
-
+add_executable(test_heap test_heap.cpp ${PROJECT_ROOT}/thirdparty/o1heap/o1heap.c)
+target_include_directories(test_heap PRIVATE ${PROJECT_ROOT}/thirdparty/o1heap)
 target_link_libraries(test_heap PRIVATE Threads::Threads)
-
 add_test(NAME HeapTest COMMAND test_heap)
 
 # test_freelist
 add_executable(test_freelist test_freelist.cpp)
+add_test(NAME FreeListTest COMMAND test_freelist)
 
-target_include_directories(test_freelist PRIVATE
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+# test_xam
+add_executable(test_xam test_xam.cpp
+    ${PROJECT_ROOT}/UnleashedRecomp/kernel/xam.cpp
+    ${PROJECT_ROOT}/UnleashedRecomp/tests/mock/xam_dependencies.cpp
 )
 
-target_compile_features(test_freelist PRIVATE cxx_std_20)
+target_include_directories(test_xam BEFORE PRIVATE
+    ${PROJECT_ROOT}/UnleashedRecomp/tests/mock
+)
 
-add_test(NAME FreeListTest COMMAND test_freelist)
+target_include_directories(test_xam PRIVATE
+    ${PROJECT_ROOT}/UnleashedRecomp
+    ${PROJECT_ROOT}/tools/XenonRecomp/XenonUtils
+)
+
+target_link_libraries(test_xam PRIVATE Threads::Threads)
+
+add_test(NAME XamTest COMMAND test_xam)
