@@ -220,3 +220,22 @@ target_compile_features(test_heap PRIVATE cxx_std_20)
 target_link_libraries(test_heap PRIVATE Threads::Threads)
 
 add_test(NAME HeapTest COMMAND test_heap)
+
+# test_kernel_string_conversion
+add_executable(test_kernel_string_conversion test_kernel_string_conversion.cpp)
+
+target_include_directories(test_kernel_string_conversion PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/XenonUtils
+)
+
+target_compile_features(test_kernel_string_conversion PRIVATE cxx_std_20)
+
+target_sources(test_kernel_string_conversion PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/kernel/string_conversion.cpp)
+
+add_test(NAME KernelStringConversionTest COMMAND test_kernel_string_conversion)
+
+target_include_directories(test_kernel_string_conversion BEFORE PRIVATE
+    ${CMAKE_SOURCE_DIR}/build_overrides/tools/XenonRecomp/XenonUtils
+)

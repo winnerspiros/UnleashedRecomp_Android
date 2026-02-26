@@ -1,4 +1,5 @@
 #include <stdafx.h>
+#include "kernel/string_conversion.h"
 #include <cpu/ppc_context.h>
 #include <cpu/guest_thread.h>
 #include <apu/audio.h>
@@ -545,25 +546,6 @@ void XexGetModuleSection()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t RtlUnicodeToMultiByteN(char* MultiByteString, uint32_t MaxBytesInMultiByteString, be<uint32_t>* BytesInMultiByteString, const be<uint16_t>* UnicodeString, uint32_t BytesInUnicodeString)
-{
-    const auto reqSize = BytesInUnicodeString / sizeof(uint16_t);
-
-    if (BytesInMultiByteString)
-        *BytesInMultiByteString = reqSize;
-
-    if (reqSize > MaxBytesInMultiByteString)
-        return STATUS_FAIL_CHECK;
-
-    for (size_t i = 0; i < reqSize; i++)
-    {
-        const auto c = UnicodeString[i].get();
-
-        MultiByteString[i] = c < 256 ? c : '?';
-    }
-
-    return STATUS_SUCCESS;
-}
 
 uint32_t KeDelayExecutionThread(uint32_t WaitMode, bool Alertable, be<int64_t>* Timeout)
 {
@@ -1288,18 +1270,6 @@ void NtQueryFullAttributesFile()
     LOG_UTILITY("!!! STUB !!!");
 }
 
-uint32_t RtlMultiByteToUnicodeN(be<uint16_t>* UnicodeString, uint32_t MaxBytesInUnicodeString, be<uint32_t>* BytesInUnicodeString, const char* MultiByteString, uint32_t BytesInMultiByteString)
-{
-    uint32_t length = std::min(MaxBytesInUnicodeString / 2, BytesInMultiByteString);
-
-    for (size_t i = 0; i < length; i++)
-        UnicodeString[i] = MultiByteString[i];
-
-    if (BytesInUnicodeString != nullptr)
-        *BytesInUnicodeString = length * 2;
-
-    return STATUS_SUCCESS;
-}
 
 void DbgBreakPoint()
 {

@@ -76,6 +76,7 @@ set(UNLEASHED_RECOMP_PRECOMPILED_HEADERS
 
 set(UNLEASHED_RECOMP_KERNEL_CXX_SOURCES
     "kernel/imports.cpp"
+    "kernel/string_conversion.cpp"
     "kernel/xdm.cpp"
     "kernel/heap.cpp"
     "kernel/memory.cpp"
