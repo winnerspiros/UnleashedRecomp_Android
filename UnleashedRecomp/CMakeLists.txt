@@ -81,6 +81,14 @@ set(UNLEASHED_RECOMP_KERNEL_CXX_SOURCES
     "kernel/memory.cpp"
     "kernel/xam.cpp"
     "kernel/io/file_system.cpp"
+    "kernel/io/nt.cpp"
+    "kernel/synchronization.cpp"
+    "kernel/threading.cpp"
+    "kernel/net.cpp"
+    "kernel/crypto.cpp"
+    "kernel/video.cpp"
+    "kernel/audio.cpp"
+    "kernel/utilities.cpp"
 )
 
 set(UNLEASHED_RECOMP_LOCALE_CXX_SOURCES

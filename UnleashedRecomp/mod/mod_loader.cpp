@@ -684,11 +684,14 @@ PPC_FUNC(sub_82E0D3E8)
 // We cannot rely on .ar.00 being the first split to be loaded, so this approach is necessary.
 static thread_local uint32_t g_prefixedArFilePath = NULL;
 
+static constexpr std::string_view s_archivePrefix = "/UnleashedRecomp/";
+
 // Hedgehog::Database::CDatabaseLoader::LoadArchives
 PPC_FUNC_IMPL(__imp__sub_82E0CC38);
 PPC_FUNC(sub_82E0CC38)
 {
     if (g_mods.empty())
+
     {
         __imp__sub_82E0CC38(ctx, base);
         return;
@@ -710,8 +713,8 @@ PPC_FUNC(sub_82E0CC38)
     char* prefixedArFilePath = reinterpret_cast<char*>(base + ctx.r3.u32);
 
     *reinterpret_cast<be<uint32_t>*>(prefixedArFilePath) = 1;
-    memcpy(prefixedArFilePath + 0x4, "/UnleashedRecomp/", 17);
-    memcpy(prefixedArFilePath + 0x15, arFilePath, arFilePathLen + 1);
+    memcpy(prefixedArFilePath + 0x4, s_archivePrefix.data(), s_archivePrefix.size());
+    memcpy(prefixedArFilePath + 0x4 + s_archivePrefix.size(), arFilePath, arFilePathLen + 1);
 
     ctx.r1.u32 -= 0x10;
     uint32_t stackSpace = ctx.r1.u32;
@@ -757,7 +760,7 @@ PPC_FUNC(sub_82E0B500)
 
     uint32_t prefixedArFilePath = PPC_LOAD_U32(ctx.r5.u32);
     std::u8string_view arFilePathU8(reinterpret_cast<const char8_t*>(base + prefixedArFilePath));
-    if (!arFilePathU8.starts_with(u8"/UnleashedRecomp/"))
+    if (!arFilePathU8.starts_with(std::u8string_view((const char8_t*)s_archivePrefix.data(), s_archivePrefix.size())))
     {
         __imp__sub_82E0B500(ctx, base);
         return;
@@ -765,7 +768,7 @@ PPC_FUNC(sub_82E0B500)
 
     // Immediately clear the string, so the remaining splits don't load append archives again.
     PPC_STORE_U8(prefixedArFilePath, 0x00);
-    arFilePathU8.remove_prefix(0x11);
+    arFilePathU8.remove_prefix(s_archivePrefix.size());
 
     auto r3 = ctx.r3; // Callback
     auto r4 = ctx.r4; // Database

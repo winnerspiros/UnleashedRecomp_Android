@@ -1,0 +1,56 @@
+#pragma once
+#include <stdafx.h>
+#include <kernel/xbox.h>
+
+void DbgPrint();
+void DbgBreakPoint();
+void RtlInitAnsiString(XANSI_STRING* destination, char* source);
+void RtlFreeAnsiString();
+void RtlUnicodeStringToAnsiString();
+void RtlInitUnicodeString();
+uint32_t RtlMultiByteToUnicodeN(be<uint16_t>* UnicodeString, uint32_t MaxBytesInUnicodeString, be<uint32_t>* BytesInUnicodeString, const char* MultiByteString, uint32_t BytesInMultiByteString);
+uint32_t RtlUnicodeToMultiByteN(char* MultiByteString, uint32_t MaxBytesInMultiByteString, be<uint32_t>* BytesInMultiByteString, const be<uint16_t>* UnicodeString, uint32_t BytesInUnicodeString);
+void RtlUpcaseUnicodeChar();
+void RtlCompareStringN();
+void RtlTimeFieldsToTime();
+void RtlTimeToTimeFields();
+void RtlNtStatusToDosError();
+void RtlImageXexHeaderField();
+void HalReturnToFirmware();
+void RtlFillMemoryUlong();
+void RtlCompareMemoryUlong();
+void KeBugCheckEx();
+void KeBugCheck();
+uint32_t KeGetCurrentProcessType();
+void KeEnableFpuExceptions();
+void RtlUnwind_x();
+void RtlCaptureContext_x();
+void KeQuerySystemTime(be<uint64_t>* time);
+uint64_t KeQueryPerformanceFrequency();
+uint32_t ExGetXConfigSetting(uint16_t Category, uint16_t Setting, void* Buffer, uint16_t SizeOfBuffer, be<uint32_t>* RequiredSize);
+uint32_t XGetLanguage();
+uint32_t GuestTimeoutToMilliseconds(be<int64_t>* timeout);
+void XboxHardwareInfo();
+void KeCertMonitorData();
+void KeDebugMonitorData();
+void KeTimeStampBundle();
+void ExThreadObjectType();
+void ExLoadedCommandLine();
+void XexExecutableModuleHandle();
+uint32_t XexCheckExecutablePrivilege();
+void XexGetProcedureAddress();
+void XexGetModuleSection();
+void XexGetModuleHandle();
+void __C_specific_handler_x();
+uint32_t XMsgStartIORequest(uint32_t App, uint32_t Message, XXOVERLAPPED* lpOverlapped, void* Buffer, uint32_t szBuffer);
+uint32_t XMsgInProcessCall(uint32_t app, uint32_t message, be<uint32_t>* param1, be<uint32_t>* param2);
+void XMsgStartIORequestEx();
+void vsprintf_x();
+void _vsnprintf_x();
+void sprintf_x();
+void _vswprintf_x();
+void _vscwprintf_x();
+void _swprintf_x();
+void _snwprintf_x();
+void _snprintf_x();
+void ExRegisterTitleTerminateNotification();

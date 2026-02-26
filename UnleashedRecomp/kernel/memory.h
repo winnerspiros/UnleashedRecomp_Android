@@ -49,3 +49,15 @@ struct Memory
 
 extern "C" void* MmGetHostAddress(uint32_t ptr);
 extern Memory g_memory;
+
+void MmFreePhysicalMemory(uint32_t type, uint32_t guestAddress);
+uint32_t MmGetPhysicalAddress(uint32_t address);
+uint32_t MmAllocatePhysicalMemoryEx(uint32_t flags, uint32_t size, uint32_t protect, uint32_t minAddress, uint32_t maxAddress, uint32_t alignment);
+uint32_t MmQueryAddressProtect(uint32_t guestAddress);
+void MmQueryAllocationSize();
+void NtQueryVirtualMemory();
+void MmQueryStatistics();
+void ExFreePool();
+void NtAllocateVirtualMemory();
+void NtFreeVirtualMemory();
+void ExAllocatePoolTypeWithTag();

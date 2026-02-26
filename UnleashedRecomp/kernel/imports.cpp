@@ -707,7 +707,7 @@ void RtlEnterCriticalSection(XRTL_CRITICAL_SECTION* cs)
 
     std::atomic_ref owningThread(cs->OwningThread);
 
-    while (true) 
+    while (true)
     {
         uint32_t previousOwner = 0;
 

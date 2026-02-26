@@ -495,3 +495,138 @@ uint32_t XamInputSetState(uint32_t userIndex, uint32_t flags, XAMINPUT_VIBRATION
 
     return hid::SetState(userIndex, vibration);
 }
+
+uint32_t XamUserGetSigninState(uint32_t userIndex)
+{
+    return true;
+}
+
+uint32_t XamGetSystemVersion()
+{
+    return 0;
+}
+
+void XamContentDelete()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t XamContentGetCreator(uint32_t userIndex, const XCONTENT_DATA* contentData, be<uint32_t>* isCreator, be<uint64_t>* xuid, XXOVERLAPPED* overlapped)
+{
+    if (isCreator)
+        *isCreator = true;
+
+    if (xuid)
+        *xuid = 0xB13EBABEBABEBABE;
+
+    return 0;
+}
+
+uint32_t XamContentGetDeviceState()
+{
+    return 0;
+}
+
+uint32_t XamUserGetSigninInfo(uint32_t userIndex, uint32_t flags, XUSER_SIGNIN_INFO* info)
+{
+    if (userIndex == 0)
+    {
+        memset(info, 0, sizeof(*info));
+        info->xuid = 0xB13EBABEBABEBABE;
+        info->SigninState = 1;
+        strncpy(info->Name, "SWA", sizeof(info->Name));
+        info->Name[sizeof(info->Name) - 1] = '\0';
+        return 0;
+    }
+
+    return 0x00000525; // ERROR_NO_SUCH_USER
+}
+
+void XamShowSigninUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+uint32_t XamShowDeviceSelectorUI
+(
+    uint32_t userIndex,
+    uint32_t contentType,
+    uint32_t contentFlags,
+    uint64_t totalRequested,
+    be<uint32_t>* deviceId,
+    XXOVERLAPPED* overlapped
+)
+{
+    XamNotifyEnqueueEvent(9, true);
+    *deviceId = 1;
+    XamNotifyEnqueueEvent(9, false);
+    return 0;
+}
+
+void XamShowDirtyDiscErrorUI()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamEnableInactivityProcessing()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamResetInactivity()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamShowMessageBoxUIEx()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamLoaderTerminateTitle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamGetExecutionId()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamLoaderLaunchTitle()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void XamUserReadProfileSettings
+(
+    uint32_t titleId,
+    uint32_t userIndex,
+    uint32_t xuidCount,
+    uint64_t* xuids,
+    uint32_t settingCount,
+    uint32_t* settingIds,
+    be<uint32_t>* bufferSize,
+    void* buffer,
+    void* overlapped
+)
+{
+    if (buffer != nullptr)
+    {
+        memset(buffer, 0, *bufferSize);
+    }
+    else
+    {
+        *bufferSize = 4;
+    }
+}
+
+void StfsControlDevice()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}
+
+void StfsCreateDevice()
+{
+    LOG_UTILITY("!!! STUB !!!");
+}

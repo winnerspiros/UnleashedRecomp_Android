@@ -1,3 +1,4 @@
+#include <cstring>
 #include "achievement_data.h"
 
 #define NUM_RECORDS sizeof(Records) / sizeof(AchRecord)

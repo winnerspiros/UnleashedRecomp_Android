@@ -1,3 +1,5 @@
+#include <cstring>
+#include <fstream>
 #include "achievement_manager.h"
 #include <os/logger.h>
 #include <kernel/memory.h>

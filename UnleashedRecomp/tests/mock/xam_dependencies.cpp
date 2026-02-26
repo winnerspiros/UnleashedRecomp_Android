@@ -6,7 +6,7 @@
 #include <config.h>
 #include <user/paths.h>
 #include <kernel/heap.h>
-#include <kernel/memory.h>
+// #include <kernel/memory.h> // Removed to avoid redefinition conflict with xdm.h
 #include <kernel/xdm.h>
 #include <mod/mod_loader.h>
 
@@ -80,13 +80,10 @@ namespace Config {
 }
 
 // Mock Paths Variables
-// ModLoader::s_saveFilePath is static inline in header, so definition removed.
+// ModLoader::s_saveFilePath is static inline in header.
 std::filesystem::path g_executableRoot = ".";
 
-const std::filesystem::path& GetUserPath() {
-    static std::filesystem::path path = "UnleashedRecomp";
-    return path;
-}
+// GetUserPath removed as it is inline in mock/user/paths.h
 
 // Mock Heap Implementation
 void Heap::Init() {}

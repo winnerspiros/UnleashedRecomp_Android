@@ -5,9 +5,6 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/private/default.xex")
 endif()
 
 # Optional patch file check
-if(FALSE)
-    message(FATAL_ERROR "\n\nError: UnleashedRecompLib/private/default.xexp is missing!\nPlease provide the original game assets in UnleashedRecompLib/private/.\nFor CI builds, ensure ASSET_REPO is configured correctly.\n\n")
-endif()
 
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/private/shader.ar")
     message(FATAL_ERROR "\n\nError: UnleashedRecompLib/private/shader.ar is missing!\nPlease provide the original game assets in UnleashedRecompLib/private/.\nFor CI builds, ensure ASSET_REPO is configured correctly.\n\n")
@@ -30,7 +27,7 @@ set(UNLEASHED_RECOMP_PPC_RECOMPILED_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ppc/ppc_recomp_shared.h"
 )
 
-foreach(i RANGE 0 16999)
+foreach(i RANGE 0 339)
     list(APPEND UNLEASHED_RECOMP_PPC_RECOMPILED_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ppc/ppc_recomp.${i}.cpp")
 endforeach()
 
