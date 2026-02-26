@@ -27,7 +27,7 @@ protected:
 public:
     bool read(const std::filesystem::path& filePath);
 
-    std::string getString(const std::string_view& sectionName, const std::string_view& propertyName, std::string defaultValue) const;
+    std::string getString(const std::string_view& sectionName, const std::string_view& propertyName, const std::string& defaultValue) const;
 
     bool getBool(const std::string_view& sectionName, const std::string_view& propertyName, bool defaultValue) const;
 

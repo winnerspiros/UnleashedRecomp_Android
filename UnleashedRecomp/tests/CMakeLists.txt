@@ -205,3 +205,16 @@ target_include_directories(benchmark_mod_loader_optimization PRIVATE
 )
 
 target_compile_features(benchmark_mod_loader_optimization PRIVATE cxx_std_20)
+
+# benchmark_ini_file
+add_executable(benchmark_ini_file benchmark_ini_file.cpp)
+
+target_include_directories(benchmark_ini_file PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+    ${CMAKE_SOURCE_DIR}/tools/XenonRecomp/thirdparty/xxHash
+    ${CMAKE_SOURCE_DIR}/thirdparty/unordered_dense/include
+)
+
+target_compile_features(benchmark_ini_file PRIVATE cxx_std_20)
+target_link_libraries(benchmark_ini_file PRIVATE xxhash)

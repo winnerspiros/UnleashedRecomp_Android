@@ -131,7 +131,7 @@ inline bool IniFile::read(const std::filesystem::path& filePath)
     return true;
 }
 
-inline std::string IniFile::getString(const std::string_view& sectionName, const std::string_view& propertyName, std::string defaultValue) const
+inline std::string IniFile::getString(const std::string_view& sectionName, const std::string_view& propertyName, const std::string& defaultValue) const
 {
     const auto sectionPair = m_sections.find(hashStr(sectionName));
     if (sectionPair != m_sections.end())
