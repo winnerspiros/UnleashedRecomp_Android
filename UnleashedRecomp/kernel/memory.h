@@ -13,6 +13,8 @@ struct Memory
 {
     uint8_t* base{};
 
+    static constexpr uintptr_t BASE_ADDRESS = 0x100000000ull;
+
     Memory();
 
     bool IsInMemoryRange(const void* host) const noexcept
