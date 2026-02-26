@@ -220,3 +220,17 @@ target_compile_features(test_heap PRIVATE cxx_std_20)
 target_link_libraries(test_heap PRIVATE Threads::Threads)
 
 add_test(NAME HeapTest COMMAND test_heap)
+
+# test_persistent_data
+add_executable(test_persistent_data test_persistent_data.cpp)
+
+target_include_directories(test_persistent_data PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/UnleashedRecomp
+)
+
+target_compile_features(test_persistent_data PRIVATE cxx_std_20)
+
+target_sources(test_persistent_data PRIVATE ${CMAKE_SOURCE_DIR}/UnleashedRecomp/user/persistent_data.cpp)
+
+add_test(NAME PersistentDataTest COMMAND test_persistent_data)

@@ -1,4 +1,5 @@
 #include "persistent_data.h"
+#include <cstring>
 
 bool PersistentData::VerifySignature() const
 {
