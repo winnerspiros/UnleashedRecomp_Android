@@ -1,4 +1,3 @@
-import re
 
 file_path = 'tools/XenonRecomp/XenonUtils/xex.cpp'
 
