@@ -87,6 +87,7 @@ struct FindHandle : KernelObject
             lpFindFileData->dwFileAttributes = ByteSwap(FILE_ATTRIBUTE_NORMAL);
 
         strncpy(lpFindFileData->cFileName, (const char *)(iterator->first.c_str()), sizeof(lpFindFileData->cFileName));
+        lpFindFileData->cFileName[sizeof(lpFindFileData->cFileName) - 1] = '\0';
         lpFindFileData->nFileSizeLow = ByteSwap(uint32_t(iterator->second.first >> 32U));
         lpFindFileData->nFileSizeHigh = ByteSwap(uint32_t(iterator->second.first));
         lpFindFileData->ftCreationTime = {};

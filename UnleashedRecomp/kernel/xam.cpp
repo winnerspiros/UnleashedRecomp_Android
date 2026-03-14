@@ -118,6 +118,7 @@ XCONTENT_DATA XamMakeContent(uint32_t type, const std::string_view& name)
     XCONTENT_DATA data{ 1, type };
 
     strncpy(data.szFileName, name.data(), sizeof(data.szFileName));
+    data.szFileName[sizeof(data.szFileName) - 1] = '\0';
 
     return data;
 }
@@ -134,6 +135,7 @@ void XamRegisterContent(uint32_t type, const std::string_view name, const std::s
     XCONTENT_DATA data{ 1, type, {}, "" };
 
     strncpy(data.szFileName, name.data(), sizeof(data.szFileName));
+    data.szFileName[sizeof(data.szFileName) - 1] = '\0';
 
     XamRegisterContent(data, root);
 }
